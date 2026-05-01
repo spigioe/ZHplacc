@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>platZH - Vezérlőpult</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script>
+        // Sötét mód villogás elleni védelme a te régi kódodból
+        const savedTheme = localStorage.getItem("zhub-theme") || "light";
+        document.documentElement.setAttribute("data-theme", savedTheme);
+    </script>
+</head>
+<body>
+
+<div class="app-layout">
+    <aside class="sidebar">
+        <div class="px-5 py-5 mb-3">
+            <h1 class="title is-4 has-text-white mb-0">Z<span class="has-text-link">Hub</span>.</h1>
+        </div>
+        
+        <div class="menu px-3 is-flex-grow-1" style="overflow-y: auto;">
+            <ul class="menu-list">
+                <li><a href="#dashboard" class="nav-item is-active px-4 py-3"><i class="fa-solid fa-house mr-3"></i> Vezérlőpult</a></li>
+                <li><a href="#timetable" class="nav-item px-4 py-3"><i class="fa-solid fa-calendar-week mr-3"></i> Órarend</a></li>
+                <li><a href="#subjects" class="nav-item px-4 py-3"><i class="fa-solid fa-book-bookmark mr-3"></i> Tantárgyak</a></li>
+                <li><a href="#assessments" class="nav-item px-4 py-3"><i class="fa-solid fa-file-pen mr-3"></i> Számonkérések</a></li>
+            </ul>
+        </div>
+
+        <div class="mt-auto">
+            <ul class="menu-list px-3">
+                <li><a id="nav-sync-btn" class="nav-item px-4 py-3 cursor-pointer"><i class="fa-solid fa-rotate mr-3"></i> Szinkronizálás</a></li>
+                <li><a id="theme-toggle" class="nav-item px-4 py-3 cursor-pointer"><i class="fa-solid fa-moon mr-3"></i> Sötét mód</a></li>
+                <li><a id="nav-settings-btn" class="nav-item px-4 py-3 cursor-pointer"><i class="fa-solid fa-gear mr-3"></i> Beállítások</a></li>
+            </ul>
+            
+            <div class="user-profile-card">
+                <div style="width: 40px; height: 40px; background-color: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                    ZH
+                </div>
+                <div style="line-height: 1.2;">
+                    <p class="has-text-white has-text-weight-bold is-size-6 mb-0">User id: {TBI}</p>
+                    <p class="has-text-grey is-size-7 mb-0">platZH user</p>
+                </div>
+                <div class="ml-auto">
+                    <button class="button is-small is-ghost has-text-danger p-0" id="logout-btn" title="Kijelentkezés">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="topbar">
+            <div>
+                <h2 class="title is-5 mb-0" id="page-title">ZHub Station v0.7</h2>
+            </div>
+            <div class="is-flex is-align-items-center" style="gap: 15px;">
+                <button class="button is-white is-rounded"><i class="fa-regular fa-bell"></i></button>
+            </div>
+        </header>
+
+        <main id="router-view">
+            <div class="is-flex is-justify-content-center is-align-items-center" style="height: 100%;">
+                <div class="loader is-loading is-large"></div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- BEÁLLÍTÁSOK MODAL (Side-panel optimalizált) -->
+<div class="modal" id="settings-modal">
+    <div class="modal-background" id="settings-bg"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title has-text-weight-bold">
+                <i class="fa-solid fa-gear has-text-grey-light mr-2"></i> Beállítások
+            </p>
+            <button class="delete" aria-label="close" id="settings-close"></button>
+        </header>
+        
+        <section class="modal-card-body">
+            
+            <!-- 1. Szekció: Oktatási Időszak -->
+            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                <h3 class="title is-6 has-text-grey is-uppercase mb-4" style="letter-spacing: 1px; font-size: 0.75rem;">
+                    <i class="fa-solid fa-calendar-days mr-2"></i> Oktatási Időszak
+                </h3>
+                <div class="columns is-mobile mb-0">
+                    <div class="column is-half field mb-0">
+                        <label class="label is-small">Hét eltolás</label>
+                        <div class="control">
+                            <input class="input has-text-centered has-text-weight-bold" type="number" id="setting-week-offset" value="0">
+                        </div>
+                    </div>
+                    <div class="column is-half field mb-0">
+                        <label class="label is-small">Félév hossza (Hét)</label>
+                        <div class="control">
+                            <input class="input has-text-centered has-text-weight-bold" type="number" id="setting-semester-length" value="14">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Szekció: Szinkronizáció -->
+            <div class="box is-shadowless mb-6" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                <h3 class="title is-6 has-text-grey is-uppercase mb-4" style="letter-spacing: 1px; font-size: 0.75rem;">
+                    <i class="fa-solid fa-cloud-arrow-down mr-2"></i> Neptun Szinkronizáció
+                </h3>
+                <div class="field">
+                    <label class="label is-small">Naptár (ICS) Link</label>
+                    <div class="control has-icons-left">
+                        <input class="input" type="text" id="setting-neptun-ics" placeholder="https://neptun.hu/...">
+                        <span class="icon is-small is-left has-text-grey">
+                            <i class="fa-solid fa-link"></i>
+                        </span>
+                    </div>
+                    <p class="help has-text-grey">Illeszd be a Neptunból exportált naptár linkjét.</p>
+                </div>
+                <button class="button is-info is-light is-fullwidth has-text-weight-bold mt-4" id="sync-now-btn">
+                    <i class="fa-solid fa-rotate mr-2"></i> Szinkronizálás most
+                </button>
+            </div>
+
+            <!-- 3. Szekció: Veszélyzóna -->
+            <div class="box is-shadowless mt-auto" style="border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05);">
+                <h3 class="title is-6 has-text-danger is-uppercase mb-4" style="letter-spacing: 1px; font-size: 0.75rem;">
+                    <i class="fa-solid fa-triangle-exclamation mr-2"></i> Veszélyzóna
+                </h3>
+                <div class="buttons is-flex-direction-column">
+                    <button class="button is-warning is-light is-fullwidth mb-3" id="reset-settings-btn" style="justify-content: flex-start;">
+                        <span class="icon"><i class="fa-solid fa-rotate-left"></i></span>
+                        <span>Alapértelmezett beállítások</span>
+                    </button>
+                    <button class="button is-danger is-fullwidth has-text-weight-bold" id="clear-all-btn" style="justify-content: flex-start;">
+                        <span class="icon"><i class="fa-solid fa-trash-can"></i></span>
+                        <span>ÖSSZES ADAT TÖRLÉSE</span>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+        
+        <footer class="modal-card-foot is-flex is-justify-content-space-between is-align-items-center">
+            <button id="settings-cancel-btn" class="button is-ghost has-text-grey">Mégse</button>
+            <button id="save-settings-btn" class="button is-link is-rounded px-6 has-text-weight-bold">
+                <span class="icon mr-1"><i class="fa-solid fa-check"></i></span>
+                <span>Mentés</span>
+            </button>
+        </footer>
+    </div>
+</div>
+
+<!-- ÚJ ZÁRTHELYI (ZH) MODAL (Side-panel optimalizált) -->
+<div class="modal" id="add-zh-modal">
+    <div class="modal-background" id="add-zh-bg"></div>
+    <div class="modal-card">
+        
+        <header class="modal-card-head">
+            <p class="modal-card-title has-text-weight-bold" id="add-zh-modal-title">
+                <i class="fa-solid fa-file-pen has-text-grey-light mr-2"></i> Új Zárthelyi
+            </p>
+            <button class="delete" aria-label="close"></button>
+        </header>
+
+        <section class="modal-card-body">
+            
+            <!-- 1. Szekció: Tantárgy és Hét -->
+            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                <div class="field">
+                    <label class="label is-small">Tantárgy</label>
+                    <div class="control">
+                        <div class="select is-fullwidth">
+                            <select id="add-zh-subject" class="has-text-weight-semibold"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="field mb-0">
+                    <label class="label is-small">Oktatási Hét</label>
+                    <div class="control">
+                        <input type="number" id="add-zh-week" class="input has-text-centered has-text-weight-bold" min="1" value="1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Szekció: Időpont és Helyszín -->
+            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                <div class="field">
+                    <label class="label is-small" id="zh-modal-title">Dátum és Időpont</label>
+                    <div class="control has-icons-left">
+                        <input class="input" type="datetime-local" id="add-zh-dateof">
+                        <span class="icon is-small is-left has-text-grey">
+                            <i class="fa-regular fa-calendar"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="field mb-0">
+                    <label class="label is-small">Terem</label>
+                    <div class="control has-icons-left">
+                        <input class="input" type="text" id="add-zh-room" placeholder="Pl.: BA.F08">
+                        <span class="icon is-small is-left has-text-grey">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Szekció: Típus és Pontozás -->
+            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                <div class="columns is-mobile mb-0">
+                    <div class="column is-7 field mb-0">
+                        <label class="label is-small">Típus</label>
+                        <div class="control">
+                            <div class="select is-fullwidth">
+                                <select id="add-zh-type">
+                                    <option>Komplex</option>
+                                    <option>Előadás</option>
+                                    <option>Labor</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="column is-5 field mb-0">
+                        <label class="label is-small">Max pont</label>
+                        <div class="control">
+                            <input class="input has-text-centered has-text-weight-bold" type="number" id="add-zh-maxpoints" value="100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Szekció: Megjegyzés -->
+            <div class="field mt-auto">
+                <label class="label is-small">Megjegyzés</label>
+                <div class="control">
+                    <textarea class="textarea" id="add-zh-notes" maxlength="250" placeholder="Ide írhatsz bármilyen apró részletet a ZH-hoz..." rows="3" style="resize: none;"></textarea>
+                </div>
+                <p class="help has-text-right has-text-grey mt-1" id="add-zh-counter">0/250</p>
+            </div>
+
+        </section>
+
+        <footer class="modal-card-foot is-flex is-justify-content-space-between is-align-items-center">
+            <button id="add-zh-cancel-btn" class="button is-ghost has-text-grey">Mégse</button>
+            <button id="zh-modal-submit-btn" class="button is-link is-rounded px-6 has-text-weight-bold">
+                <span class="icon mr-1"><i class="fa-solid fa-check"></i></span>
+                <span id="zh-modal-submit-text">Felvétel</span>
+            </button>
+        </footer>
+        
+    </div>
+</div>
+
+<div class="modal" id="add-class-modal">
+    <div class="modal-background" id="add-class-bg"></div>
+    <div class="modal-card">
+        
+        <header class="modal-card-head">
+            <p class="modal-card-title has-text-weight-bold">
+                <i class="fa-solid fa-chalkboard-user has-text-grey-light mr-2"></i> Új Esemény
+            </p>
+            <button class="delete" aria-label="close" id="add-class-close-btn"></button>
+        </header>
+
+        <section class="modal-card-body">
+            
+            <!-- 1. Szekció: Mi ez az esemény? (Tárgy vagy Egyéni) -->
+            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                
+                <div class="field mb-4">
+                    <label class="label is-small">Esemény Típusa</label>
+                    <div class="control">
+                        <!-- Egy vizuális kapcsoló, ami JS nélkül is működhetne, de a JS-ednek majd ki kell olvasnia, melyik inputból veszi a nevet -->
+                        <div class="tabs is-toggle is-fullwidth is-small m-0" id="add-class-type-toggle">
+                            <ul>
+                                <li class="is-active" data-type="subject">
+                                    <a><span class="icon is-small"><i class="fa-solid fa-book"></i></span><span>Meglévő Tárgy</span></a>
+                                </li>
+                                <li data-type="custom">
+                                    <a><span class="icon is-small"><i class="fa-solid fa-pen"></i></span><span>Egyéni Név</span></a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ha Meglévő Tárgy van kiválasztva (Ezt a JS fogja tölteni, ahogy a ZH-nál is!) -->
+                <div class="field mb-0" id="add-class-subject-container">
+                    <label class="label is-small">Válassz Tárgyat</label>
+                    <div class="control">
+                        <div class="select is-fullwidth">
+                            <!-- Ugyanazt az ID-t használjuk, hogy a JS-ed megtalálja, de dropdown lett -->
+                            <select id="add-class-subject-dropdown" class="has-text-weight-semibold"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ha Egyéni Név van kiválasztva (Alapból rejtve) -->
+                <div class="field mb-0 is-hidden" id="add-class-custom-container">
+                    <label class="label is-small">Esemény Neve</label>
+                    <div class="control">
+                        <!-- Eredeti ID megtartva, hogy a JS mentésed működjön -->
+                        <input class="input has-text-weight-semibold" type="text" id="add-class-subject" placeholder="Pl.: Orvos, Projekt meeting...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Szekció: Időpont, Helyszín és Gyakoriság -->
+            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                <div class="columns is-mobile mb-0">
+                    <div class="column is-6 field mb-0">
+                        <label class="label is-small">Nap</label>
+                        <div class="control">
+                            <div class="select is-fullwidth">
+                                <select id="add-class-day">
+                                    <option value="1">Hétfő</option>
+                                    <option value="2">Kedd</option>
+                                    <option value="3">Szerda</option>
+                                    <option value="4">Csütörtök</option>
+                                    <option value="5">Péntek</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="column is-6 field mb-0">
+                        <label class="label is-small">Helyszín</label>
+                        <div class="control">
+                            <input class="input" type="text" id="add-class-room" placeholder="Pl.: BA.F08">
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="my-3" style="background-color: var(--bulma-border);">
+                
+                <div class="columns is-mobile mb-0">
+                    <div class="column is-6 field mb-0">
+                        <label class="label is-small">Kezdés</label>
+                        <div class="control">
+                            <input class="input has-text-centered has-text-weight-bold" type="time" id="add-class-start">
+                        </div>
+                    </div>
+                    <div class="column is-6 field mb-0">
+                        <label class="label is-small">Vége</label>
+                        <div class="control">
+                            <input class="input has-text-centered has-text-weight-bold" type="time" id="add-class-end">
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-3" style="background-color: var(--bulma-border);">
+
+                <div class="field mb-0">
+                    <label class="label is-small">Gyakoriság</label>
+                    <div class="control">
+                        <div class="select is-fullwidth">
+                            <select id="add-class-frequency">
+                                <option value="0">Csak ezen a héten</option>
+                                <option value="1">Minden héten (Félév végéig)</option>
+                                <option value="2">Minden második héten (Páros/Páratlan)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Szekció: Megjelenés és Fontosság (ÚJ!) -->
+            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                <div class="columns is-mobile mb-0">
+                    <div class="column is-4 field mb-0">
+                        <label class="label is-small">Szín</label>
+                        <div class="control">
+                            <!-- Ezt a JS olvassa ki mentéskor -->
+                            <input class="input p-1" type="color" id="add-class-color" style="height: 40px; cursor: pointer;" value="#3b82f6">
+                        </div>
+                    </div>
+                    <div class="column is-8 field mb-0">
+                        <label class="label is-small">Fontosság</label>
+                        <div class="control">
+                            <div class="select is-fullwidth">
+                                <select id="add-class-importance">
+                                    <option value="0">Normál</option>
+                                    <option value="1">⚠️ Fontos (Készülni kell)</option>
+                                    <option value="2">🚨 Kritikus (Katalógusos)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Szekció: Megjegyzés -->
+            <div class="field mt-auto">
+                <label class="label is-small">Megjegyzés</label>
+                <div class="control">
+                    <textarea class="textarea" id="add-class-notes" placeholder="Ide írhatsz bármit az órához..." rows="2" style="resize: none;"></textarea>
+                </div>
+            </div>
+
+        </section>
+
+        <footer class="modal-card-foot is-flex is-justify-content-space-between is-align-items-center">
+            <button class="button is-ghost has-text-grey" id="add-class-cancel-btn-bottom">Mégse</button>
+            <button class="button is-link is-rounded px-6 has-text-weight-bold" id="add-class-submit-btn">
+                <span class="icon mr-1"><i class="fa-solid fa-check"></i></span>
+                <span>Mentés</span>
+            </button>
+        </footer>
+        
+    </div>
+</div>
+
+<div class="modal" id="add-exam-modal">
+    <div class="modal-background" id="add-exam-bg"></div>
+    <div class="modal-card">
+        
+        <header class="modal-card-head">
+            <p class="modal-card-title has-text-weight-bold" id="add-exam-title">
+                <i class="fa-solid fa-graduation-cap has-text-grey-light mr-2"></i> Új Vizsga
+            </p>
+            <button class="delete" aria-label="close" id="add-exam-close"></button>
+        </header>
+
+        <section class="modal-card-body">
+            
+            <!-- 1. Szekció: Tantárgy és Típus -->
+            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                <div class="field">
+                    <label class="label is-small">Tantárgy</label>
+                    <div class="control">
+                        <div class="select is-fullwidth">
+                            <select id="add-exam-subject" class="has-text-weight-semibold"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="field mb-0">
+                    <label class="label is-small">Vizsga Típusa</label>
+                    <div class="control">
+                        <div class="select is-fullwidth">
+                            <select id="add-exam-type">
+                                <option>Írásbeli</option>
+                                <option>Szóbeli</option>
+                                <option>Komplex</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Szekció: Időpont és Helyszín -->
+            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                <div class="field">
+                    <label class="label is-small">Dátum és Időpont</label>
+                    <div class="control has-icons-left">
+                        <input class="input" type="datetime-local" id="add-exam-dateof">
+                        <span class="icon is-small is-left has-text-grey">
+                            <i class="fa-regular fa-calendar"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="field mb-0">
+                    <label class="label is-small">Terem</label>
+                    <div class="control has-icons-left">
+                        <input class="input" type="text" id="add-exam-room" placeholder="Pl.: BA.F08">
+                        <span class="icon is-small is-left has-text-grey">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Szekció: Megjegyzés -->
+            <div class="field mt-auto">
+                <label class="label is-small">Megjegyzés</label>
+                <div class="control">
+                    <textarea class="textarea" id="add-exam-notes" placeholder="Fontos tudnivalók, tételek, felkészülési anyagok..." rows="3" style="resize: none;"></textarea>
+                </div>
+            </div>
+
+        </section>
+
+        <footer class="modal-card-foot is-flex is-justify-content-space-between is-align-items-center">
+            <button id="add-exam-cancel-btn" class="button is-ghost has-text-grey">Mégse</button>
+            <button id="exam-modal-submit-btn" class="button is-danger is-rounded px-6 has-text-weight-bold">
+                <span class="icon mr-1"><i class="fa-solid fa-check"></i></span>
+                <span>Mentés</span>
+            </button>
+        </footer>
+        
+    </div>
+</div>
+
+<div class="modal" id="add-subject-modal">
+    <div class="modal-background" id="add-subject-bg"></div>
+    <div class="modal-card">
+        
+        <header class="modal-card-head">
+            <p class="modal-card-title has-text-weight-bold" id="add-sub-title">
+                <i class="fa-solid fa-book-bookmark has-text-grey-light mr-2"></i> Új Tárgy
+            </p>
+            <button class="delete" aria-label="close" id="add-sub-cancel-btn"></button>
+        </header>
+
+        <section class="modal-card-body">
+            
+            <!-- 1. Szekció: Alapadatok -->
+            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                <div class="field">
+                    <label class="label is-small">Tantárgy Neve</label>
+                    <div class="control">
+                        <input class="input has-text-weight-semibold" type="text" id="add-sub-name" placeholder="Pl.: Hálózatok 1.">
+                    </div>
+                </div>
+                <div class="field mb-0">
+                    <label class="label is-small">Teljesítés módja</label>
+                    <div class="control">
+                        <div class="select is-fullwidth">
+                            <select id="add-sub-completion">
+                                <option value="true">Vizsgás</option>
+                                <option value="false">Évközi jegyes</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Szekció: Számok (Kredit, ZH) -->
+            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                <div class="columns is-mobile mb-0">
+                    <div class="column is-6 field mb-0">
+                        <label class="label is-small">Kredit</label>
+                        <div class="control">
+                            <input class="input has-text-centered has-text-weight-bold" type="number" id="add-sub-credits" value="0">
+                        </div>
+                    </div>
+                    <div class="column is-6 field mb-0">
+                        <label class="label is-small">ZH-k száma</label>
+                        <div class="control">
+                            <input class="input has-text-centered has-text-weight-bold" type="number" id="add-sub-zhcount" value="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Szekció: Megjegyzés -->
+            <div class="field mt-auto">
+                <label class="label is-small">Leírás / Megjegyzés</label>
+                <div class="control">
+                    <textarea class="textarea" id="add-sub-notes" placeholder="Tanár neve, értékelési módszer, linkek..." rows="4" maxlength="250" style="resize: none;"></textarea>
+                </div>
+                <p class="help has-text-right has-text-grey mt-1" id="add-sub-counter">0/250</p>
+            </div>
+
+        </section>
+
+        <footer class="modal-card-foot is-flex is-justify-content-space-between is-align-items-center">
+            <button class="button is-ghost has-text-grey" id="add-sub-cancel-btn-bottom">Mégse</button>
+            <button class="button is-link is-rounded px-6 has-text-weight-bold" id="add-sub-submit">
+                <span class="icon mr-1"><i class="fa-solid fa-check"></i></span>
+                <span id="add-sub-submit-text">Felvétel</span>
+            </button>
+        </footer>
+        
+    </div>
+</div>
+
+
+
+<div class="modal" id="sync-progress-modal"><div class="modal-background" style="background-color: rgba(0, 0, 0, 0.8);"></div><div class="modal-content" style="max-width: 400px; text-align: center; background: white; padding: 40px 30px; border-radius: 12px;"><h3 class="title is-4 has-text-link" id="sync-modal-title">Szinkronizálás...</h3><div id="sync-loading-spinner" style="margin: 30px auto;"><div class="loader is-loading" style="height: 60px; width: 60px; border: 4px solid var(--bulma-link); border-right-color: transparent; margin: 0 auto;"></div></div><p id="sync-modal-message" class="has-text-grey mb-5 is-size-6">A Neptun adatok letöltése...</p><button class="button is-link is-rounded is-hidden" id="sync-modal-close-btn" style="width: 150px; margin: 0 auto;">Bezárás</button></div></div>
+
+<div class="modal" id="missing-link-modal"><div class="modal-background" id="missing-link-bg" style="background-color: rgba(0, 0, 0, 0.8);"></div><div class="modal-content" style="max-width: 420px; text-align: center; background: var(--bulma-background); padding: 40px 30px; border-radius: 12px;"><div style="font-size: 3rem; margin-bottom: 10px;">🔗</div><h3 class="title is-4 has-text-warning">Hiányzó Neptun Link</h3><p class="has-text-grey mb-5 is-size-6">A szinkronizáláshoz előbb meg kell adnod a Neptun naptárad (ICS) linkjét a beállításokban.</p><div class="buttons is-centered"><button class="button is-link is-primary" id="missing-link-settings-btn">Beállítások</button><button class="button is-danger" id="missing-link-cancel-btn">Mégsem</button></div></div></div>
+<!-- ========================================== -->
+<!-- 1. ZH RÉSZLETEK MODAL -->
+<!-- ========================================== -->
+<div class="modal" id="view-zh-modal">
+    <div class="modal-background" id="view-zh-bg"></div>
+    <div class="modal-card">
+        
+        <header class="modal-card-head">
+            <p class="modal-card-title has-text-weight-bold" id="view-zh-title">
+                <i class="fa-solid fa-file-pen has-text-grey-light mr-2"></i> ZH Részletei
+            </p>
+            <button class="delete" aria-label="close" id="view-zh-cancel-btn"></button>
+        </header>
+
+        <section class="modal-card-body">
+            
+            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                <h1 id="view-zh-subject" class="title is-4 mb-4" style="word-break: break-word;">ZH neve</h1>
+                
+                <div class="is-flex is-align-items-center mb-3">
+                    <span class="icon has-text-grey mr-3"><i class="fa-regular fa-calendar"></i></span>
+                    <span class="is-size-5 has-text-weight-bold" id="view-zh-dateof">Dátum és Időpont</span>
+                </div>
+                
+                <div class="is-flex is-align-items-center mb-3">
+                    <span class="icon has-text-grey mr-3"><i class="fa-solid fa-location-dot"></i></span>
+                    <span class="is-size-6 has-text-weight-semibold" id="view-zh-room">Terem</span>
+                </div>
+                
+                <div class="is-flex is-align-items-center mb-3">
+                    <span class="icon has-text-grey mr-3"><i class="fa-solid fa-layer-group"></i></span>
+                    <span class="is-size-6 has-text-weight-semibold" id="view-zh-type">Típus</span>
+                </div>
+                
+                <hr class="my-3" style="background-color: var(--bulma-border);">
+                
+                <div class="columns is-mobile is-vcentered m-0">
+                    <div class="column is-half p-0">
+                        <p class="heading mb-1 has-text-grey">Max Pont</p>
+                        <p class="title is-3" id="view-zh-maxpoints">100</p>
+                    </div>
+                    <div class="column is-half p-0">
+                        <p class="heading mb-1 has-text-grey">Oktatási Hét</p>
+                        <p class="title is-3" id="view-zh-week">1</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field mt-auto">
+                <label class="label is-small">Megjegyzés</label>
+                <div class="box is-shadowless p-4" style="background-color: var(--bulma-background); border: 1px solid var(--bulma-border); min-height: 80px;">
+                    <div id="view-zh-notes" style="white-space: pre-wrap; font-size: 0.95rem;">Nincs megjegyzés.</div>
+                </div>
+            </div>
+
+        </section>
+
+        <footer class="modal-card-foot is-flex is-justify-content-space-between">
+            <button id="view-zh-delete-btn" class="button is-danger is-light px-5">
+                <span class="icon mr-1"><i class="fa-solid fa-trash-can"></i></span>
+                <span>Törlés</span>
+            </button>
+            <button id="view-zh-edit-btn" class="button is-link px-5">
+                <span class="icon mr-1"><i class="fa-solid fa-pen"></i></span>
+                <span>Szerkesztés</span>
+            </button>
+        </footer>
+        
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- 2. VIZSGA RÉSZLETEK MODAL -->
+<!-- ========================================== -->
+<div class="modal" id="view-exam-modal">
+    <div class="modal-background" id="view-exam-bg"></div>
+    <div class="modal-card">
+        
+        <header class="modal-card-head">
+            <p class="modal-card-title has-text-weight-bold">
+                <i class="fa-solid fa-graduation-cap has-text-grey-light mr-2"></i> Vizsga Részletei
+            </p>
+            <button class="delete" aria-label="close" id="view-exam-cancel-btn"></button>
+        </header>
+
+        <section class="modal-card-body">
+            
+            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                <h1 id="view-exam-subject" class="title is-4 mb-4" style="word-break: break-word;">Tantárgy</h1>
+                
+                <div class="is-flex is-align-items-center mb-3">
+                    <span class="icon has-text-grey mr-3"><i class="fa-regular fa-calendar"></i></span>
+                    <span class="is-size-5 has-text-weight-bold" id="view-exam-dateof">Dátum és Időpont</span>
+                </div>
+                
+                <div class="is-flex is-align-items-center mb-3">
+                    <span class="icon has-text-grey mr-3"><i class="fa-solid fa-location-dot"></i></span>
+                    <span class="is-size-6 has-text-weight-semibold" id="view-exam-room">Terem</span>
+                </div>
+                
+                <div class="is-flex is-align-items-center">
+                    <span class="icon has-text-grey mr-3"><i class="fa-solid fa-layer-group"></i></span>
+                    <span class="is-size-6 has-text-weight-semibold" id="view-exam-type">Típus</span>
+                </div>
+            </div>
+
+            <div class="field mt-auto">
+                <label class="label is-small">Megjegyzés</label>
+                <div class="box is-shadowless p-4" style="background-color: var(--bulma-background); border: 1px solid var(--bulma-border); min-height: 80px;">
+                    <div id="view-exam-notes" style="white-space: pre-wrap; font-size: 0.95rem;">Nincs megjegyzés.</div>
+                </div>
+            </div>
+
+        </section>
+
+        <footer class="modal-card-foot is-flex is-justify-content-space-between">
+            <button id="view-exam-delete-btn" class="button is-danger is-light px-5">
+                <span class="icon mr-1"><i class="fa-solid fa-trash-can"></i></span>
+                <span>Törlés</span>
+            </button>
+            <button id="view-exam-edit-btn" class="button is-link px-5">
+                <span class="icon mr-1"><i class="fa-solid fa-pen"></i></span>
+                <span>Szerkesztés</span>
+            </button>
+        </footer>
+        
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- 3. TANTÁRGY RÉSZLETEK MODAL -->
+<!-- ========================================== -->
+<div class="modal" id="view-subject-modal">
+    <div class="modal-background" id="view-subject-bg"></div>
+    <div class="modal-card">
+        
+        <header class="modal-card-head">
+            <p class="modal-card-title has-text-weight-bold" id="view-sub-name">
+                <i class="fa-solid fa-book-bookmark has-text-grey-light mr-2"></i> Tantárgy Név
+            </p>
+            <button class="delete" aria-label="close" id="view-sub-close-btn"></button>
+        </header>
+
+        <section class="modal-card-body">
+            
+            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                <div class="is-flex is-align-items-center is-justify-content-space-between mb-3">
+                    <span class="has-text-weight-semibold">Kreditérték:</span>
+                    <span class="tag is-info is-light is-medium" id="view-sub-credits">0</span>
+                </div>
+                
+                <div class="is-flex is-align-items-center is-justify-content-space-between mb-3">
+                    <span class="has-text-weight-semibold">Tervezett ZH-k száma:</span>
+                    <span class="tag is-warning is-light is-medium" id="view-sub-zhcount">0</span>
+                </div>
+                
+                <div class="is-flex is-align-items-center is-justify-content-space-between">
+                    <span class="has-text-weight-semibold">Teljesítés típusa:</span>
+                    <span class="tag is-primary is-light is-medium" id="view-sub-completion">Évközi</span>
+                </div>
+            </div>
+
+            <div class="field mt-auto">
+                <label class="label is-small">Leírás / Megjegyzés</label>
+                <div class="box is-shadowless p-4" style="background-color: var(--bulma-background); border: 1px solid var(--bulma-border); min-height: 80px;">
+                    <div id="view-sub-notes" style="white-space: pre-wrap; font-size: 0.95rem;">Nincs megjegyzés.</div>
+                </div>
+            </div>
+
+        </section>
+
+        <footer class="modal-card-foot is-flex is-justify-content-flex-end">
+            <button class="button is-link px-6" id="view-sub-edit-btn">
+                <span class="icon mr-1"><i class="fa-solid fa-pen"></i></span>
+                <span>Szerkesztés</span>
+            </button>
+        </footer>
+        
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- 4. ESEMÉNY / ÓRA RÉSZLETEK MODAL -->
+<!-- ========================================== -->
+<div class="modal" id="view-class-modal">
+    <div class="modal-background" id="view-class-bg"></div>
+    <div class="modal-card">
+        
+        <header class="modal-card-head">
+            <p class="modal-card-title has-text-weight-bold">
+                <i class="fa-solid fa-chalkboard-user has-text-grey-light mr-2"></i> Esemény Részletei
+            </p>
+            <button class="delete" aria-label="close" id="view-class-cancel-btn"></button>
+        </header>
+
+        <section class="modal-card-body">
+            
+            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                <p class="mb-3">
+                    <span class="tag is-info is-light is-medium" id="detail-class-subject" style="font-weight: 700; font-size: 1.1rem; padding: 1.2rem;">Esemény Név</span>
+                </p>
+                
+                <div class="is-flex is-align-items-center mb-2">
+                    <span class="icon has-text-grey mr-3"><i class="fa-regular fa-clock"></i></span>
+                    <span class="is-size-6 has-text-weight-semibold" id="detail-class-time">Időpont</span>
+                </div>
+                
+                <div class="is-flex is-align-items-center mb-2">
+                    <span class="icon has-text-grey mr-3"><i class="fa-solid fa-location-dot"></i></span>
+                    <span class="is-size-6 has-text-weight-semibold" id="detail-class-room">Helyszín</span>
+                </div>
+                
+                <div class="is-flex is-align-items-center">
+                    <span class="icon has-text-grey mr-3"><i class="fa-solid fa-layer-group"></i></span>
+                    <span class="is-size-6 has-text-weight-semibold" id="detail-class-type">Típus</span>
+                </div>
+            </div>
+            
+            <h3 class="title is-6 mb-3 has-text-grey is-uppercase" style="letter-spacing: 1px; font-size: 0.75rem;">Személyre szabás</h3>
+            
+            <div class="box is-shadowless mb-5 p-4" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                
+                <div id="detail-scope-field" class="field mb-4">
+                    <label class="label is-small">Mentés hatóköre (Neptun óráknál)</label>
+                    <div class="control">
+                        <label class="radio is-block mb-2">
+                            <input type="radio" name="classScope" value="single" checked> Csak ez az egy óra
+                        </label>
+                        <label class="radio is-block">
+                            <input type="radio" name="classScope" value="all"> Az összes ilyen nevű és típusú óra
+                        </label>
+                    </div>
+                </div>
+
+                <div class="columns is-mobile mb-0">
+                    <div class="column is-4 field mb-0">
+                        <label class="label is-small">Kártya színe</label>
+                        <div class="control">
+                            <input class="input p-1" type="color" id="detail-class-color-input" style="height: 40px; cursor: pointer;">
+                        </div>
+                    </div>
+                    <div class="column is-8 field mb-0">
+                        <label class="label is-small">Fontosság</label>
+                        <div class="control">
+                            <div class="select is-fullwidth">
+                                <select id="detail-class-importance-input">
+                                    <option value="0">Normál</option>
+                                    <option value="1">⚠️ Fontos (Készülni kell)</option>
+                                    <option value="2">🚨 Kritikus (Katalógusos)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field mt-auto">
+                <label class="label is-small">Saját megjegyzés</label>
+                <div class="control">
+                    <textarea class="textarea" id="detail-class-notes-input" rows="2" placeholder="Ide írhatsz bármit az órához..." style="resize: none;"></textarea>
+                </div>
+            </div>
+            
+            <div id="custom-class-actions" class="is-hidden has-text-right mt-3">
+                <button class="button is-danger is-small is-light" id="detail-class-delete-btn">
+                    <span class="icon mr-1"><i class="fa-solid fa-trash-can"></i></span> Saját óra törlése
+                </button>
+            </div>
+
+        </section>
+
+        <footer class="modal-card-foot is-flex is-justify-content-space-between is-align-items-center">
+            <button class="button is-warning is-light has-text-weight-bold" id="view-class-to-zh-btn">
+                <span class="icon mr-1"><i class="fa-solid fa-graduation-cap"></i></span> ZH-vá alakít
+            </button>
+            <button class="button is-link is-rounded px-6 has-text-weight-bold" id="view-class-save-btn">
+                <span class="icon mr-1"><i class="fa-solid fa-check"></i></span>
+                <span>Mentés</span>
+            </button>
+        </footer>
+        
+    </div>
+</div>
+
+<div class="modal" id="clear-db-modal">
+    <div class="modal-background" id="clear-db-bg"></div>
+    <div class="modal-card">
+        <header class="modal-card-head has-background-danger">
+            <p class="modal-card-title has-text-white has-text-weight-bold">Adatok Végleges Törlése</p>
+            <button class="delete" aria-label="close" id="clear-db-close-btn"></button>
+        </header>
+        <section class="modal-card-body">
+            <p class="mb-4">Válaszd ki, hogy mit szeretnél <strong>véglegesen</strong> törölni a fiókodból:</p>
+            <div class="box">
+                <label class="checkbox is-block mb-3 is-size-5">
+                    <input type="checkbox" id="clear-cb-timetable"> 📅 Órarend (Saját és Neptun órák)
+                </label>
+                <label class="checkbox is-block mb-3 is-size-5">
+                    <input type="checkbox" id="clear-cb-subjects"> 📚 Tantárgyak
+                </label>
+                <label class="checkbox is-block mb-3 is-size-5">
+                    <input type="checkbox" id="clear-cb-zhs"> 📝 Zárthelyik (ZH-k)
+                </label>
+                <label class="checkbox is-block is-size-5">
+                    <input type="checkbox" id="clear-cb-exams"> 🎓 Vizsgák
+                </label>
+            </div>
+        </section>
+        <footer class="modal-card-foot" style="justify-content: flex-end;">
+            <button class="button is-danger" id="clear-db-confirm-btn"><i class="fa-solid fa-trash-can mr-2"></i> Kijelöltek törlése</button>
+            <button class="button" id="clear-db-cancel-btn">Mégse</button>
+        </footer>
+    </div>
+</div>
+
+<!-- ÚJ ESEMÉNY TÍPUSA VÁLASZTÓ MODÁL -->
+<div class="modal" id="add-event-type-modal">
+    <div class="modal-background" id="add-event-type-bg"></div>
+    <div class="modal-card" style="width: 450px; max-width: 90vw;">
+        <header class="modal-card-head">
+            <p class="modal-card-title has-text-weight-bold">Mit szeretnél felvenni?</p>
+            <button class="delete" aria-label="close" id="add-event-type-close"></button>
+        </header>
+        <section class="modal-card-body p-5">
+            <button class="button is-link is-light is-fullwidth is-medium mb-4" id="btn-select-type-class" style="height: 60px;">
+                <span class="icon is-large mr-2"><i class="fa-solid fa-chalkboard-user fa-lg"></i></span>
+                <span class="has-text-weight-bold">Saját Óra / Teendő</span>
+            </button>
+            <button class="button is-warning is-light is-fullwidth is-medium mb-4" id="btn-select-type-zh" style="height: 60px;">
+                <span class="icon is-large mr-2"><i class="fa-solid fa-file-pen fa-lg"></i></span>
+                <span class="has-text-weight-bold">Zárthelyi (ZH)</span>
+            </button>
+            <button class="button is-danger is-light is-fullwidth is-medium" id="btn-select-type-exam" style="height: 60px;">
+                <span class="icon is-large mr-2"><i class="fa-solid fa-graduation-cap fa-lg"></i></span>
+                <span class="has-text-weight-bold">Vizsga</span>
+            </button>
+        </section>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

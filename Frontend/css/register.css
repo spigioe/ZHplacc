@@ -1,0 +1,28 @@
+.login-hero {
+            background: linear-gradient(135deg, var(--bulma-scheme-main-bis) 0%, var(--bulma-link-light) 100%);
+            transition: background 0.3s ease;
+        }
+        
+[data-theme="dark"] .login-hero {
+    background: linear-gradient(135deg, var(--bulma-scheme-dark) 0%, #1a1a24 100%);
+}
+
+.login-card {
+    border-radius: 16px;
+    background-color: var(--bulma-box-background-color); 
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    padding: 2rem;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.zhub-logo {
+    font-size: 3.5rem;
+    margin-bottom: -10px;
+}
+
+.theme-toggle-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    border-radius: 50px;
+}

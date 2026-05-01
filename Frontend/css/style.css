@@ -1,0 +1,724 @@
+/* ALAPVETŐ ELRENDEZÉS (VÁZ) */
+:root {
+    --sidebar-width: 260px;
+    --right-panel-width: 320px;
+    --topbar-height: 70px;
+    --bg-color: #f8fafc;
+    --border-color: #e2e8f0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    background-color: var(--bg-color);
+    overflow: hidden; /* A főoldal nem görgethető, csak a belső panelek! */
+}
+
+.app-layout {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* BAL OSZLOP (SIDEBAR) */
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: #0f172a;
+    color: #94a3b8;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    z-index: 10;
+}
+
+.sidebar .nav-item {
+    color: #94a3b8;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    transition: 0.2s;
+}
+
+.sidebar .nav-item:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
+    
+.sidebar .nav-item.is-active {
+    background-color: #3b82f6;
+    color: white;
+}
+
+/* Felhasználói kártya a sidebar alján */
+.user-profile-card {
+    background-color: #1e293b;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* KÖZÉPSŐ + JOBB RÉSZ KONTÉNERE */
+.main-wrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* FELSŐ SÁV (TOPBAR) */
+.topbar {
+    height: var(--topbar-height);
+    background-color: #fff;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    flex-shrink: 0;
+}
+
+/* ROUTER VIEW (Ide töltődik be az adott aloldal) */
+#router-view {
+    flex-grow: 1;
+    overflow: hidden; /* A belső elemek fognak görgetni */
+}
+
+/* --- DASHBOARD SPECIFIKUS ELRENDEZÉS --- */
+.dashboard-view {
+    display: flex;
+    height: 100%;
+}
+
+.dash-center {
+    flex-grow: 1;
+    padding: 30px;
+    overflow-y: auto; /* A középső oszlop önállóan görgethető */
+}
+
+.dash-right {
+    width: var(--right-panel-width);
+    background-color: #fff;
+    border-left: 1px solid var(--border-color);
+    padding: 30px 20px;
+    flex-shrink: 0;
+    overflow-y: auto; /* A jobb oszlop önállóan görgethető */
+}
+
+/* ==========================================
+   ZHUB PREMIUM ÉJSZAKAI MÓD
+   Szemkímélő, elegáns sötét téma a késő esti kódoláshoz
+   ========================================== */
+
+html[data-theme="dark"] {
+    /* Bulma natív változók felülírása finom, mély szürkékre (nem tiszta fekete!) */
+    --bulma-scheme-main: #18181b;      /* Modálok, panelek, felső sáv */
+    --bulma-scheme-main-bis: #27272a;  /* Kiemelt dobozok, inputok háttere */
+    --bulma-scheme-main-ter: #3f3f46;  /* Hover effektek */
+    --bulma-background: #0f0f11;       /* Legalsó réteg (majdnem fekete) */
+    --bulma-border: #3f3f46;           /* Vonalak és szegélyek */
+    
+    /* Szövegszínek (Törtfehér a retina kímélése érdekében) */
+    --bulma-text: #e4e4e7;             
+    --bulma-text-strong: #ffffff;      
+    --bulma-text-light: #a1a1aa;       
+}
+
+/* 1. Alap elrendezés (Oldalsáv, Felsősáv, Fő terület) */
+html[data-theme="dark"] body {
+    background-color: var(--bulma-background);
+}
+
+html[data-theme="dark"] .sidebar {
+    background-color: var(--bulma-scheme-main);
+    border-right: 1px solid var(--bulma-border);
+}
+
+html[data-theme="dark"] .topbar {
+    background-color: var(--bulma-scheme-main);
+    border-bottom: 1px solid var(--bulma-border);
+}
+
+/* 2. Menüpontok és Profil az oldalsávban */
+html[data-theme="dark"] .nav-item {
+    color: var(--bulma-text-light);
+}
+
+html[data-theme="dark"] .nav-item:hover {
+    background-color: var(--bulma-scheme-main-bis);
+    color: var(--bulma-text-strong);
+}
+
+html[data-theme="dark"] .nav-item.is-active {
+    background-color: var(--bulma-link);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .user-profile-card {
+    background-color: var(--bulma-scheme-main-bis);
+    border: 1px solid var(--bulma-border);
+    border-radius: 8px;
+    margin: 10px;
+}
+
+/* 3. A te Egyedi Komponenseid (ZH Modál, Dobozok) */
+html[data-theme="dark"] .custom-field-row,
+html[data-theme="dark"] .max-point-box,
+html[data-theme="dark"] #add-zh-date-box,
+html[data-theme="dark"] .notes-box,
+html[data-theme="dark"] .zh-modal-header-box {
+    background-color: var(--bulma-scheme-main-bis) !important;
+    border: 1px solid var(--bulma-border) !important;
+    color: var(--bulma-text);
+}
+
+html[data-theme="dark"] .notes-header,
+html[data-theme="dark"] .custom-field-label,
+html[data-theme="dark"] .max-point-label {
+    color: var(--bulma-text-light) !important;
+}
+
+/* 4. Átlátszó inputok szövegszínének javítása a Modálokban */
+html[data-theme="dark"] .custom-field-input,
+html[data-theme="dark"] .max-point-input,
+html[data-theme="dark"] #add-zh-week,
+html[data-theme="dark"] #add-zh-dateof,
+html[data-theme="dark"] .zh-modal-title-input {
+    color: var(--bulma-text-strong) !important;
+}
+
+/* A legördülő menük opcióinak háttere */
+html[data-theme="dark"] select option {
+    background-color: var(--bulma-scheme-main);
+    color: var(--bulma-text);
+}
+
+/* 5. Gombok finomhangolása (Ne vakítsanak a fehér gombok) */
+html[data-theme="dark"] .button.is-white,
+html[data-theme="dark"] .button.is-light {
+    background-color: var(--bulma-scheme-main-bis);
+    border-color: var(--bulma-border);
+    color: var(--bulma-text-strong);
+}
+
+html[data-theme="dark"] .button.is-white:hover,
+html[data-theme="dark"] .button.is-light:hover {
+    background-color: var(--bulma-scheme-main-ter);
+}
+
+/* Modal bezáró X gomb invertálása */
+html[data-theme="dark"] .delete {
+    filter: invert(0.8);
+}
+
+/* Erőszakos fehér hátterek megsemmisítése a Dashboardon / Jobb oldali paneleken */
+html[data-theme="dark"] .dash-right,
+html[data-theme="dark"] .dashboard-view,
+html[data-theme="dark"] .main-wrapper,
+html[data-theme="dark"] table,
+html[data-theme="dark"] tr,
+html[data-theme="dark"] td {
+    background-color: transparent !important;
+}
+
+html[data-theme="dark"] [style*="background: #fff"],
+html[data-theme="dark"] [style*="background-color: #fff"],
+html[data-theme="dark"] [style*="background: white"],
+html[data-theme="dark"] [style*="background-color: white"] {
+    background-color: var(--bulma-scheme-main) !important;
+    color: var(--bulma-text) !important;
+}
+
+/* ==========================================
+   DARK MODE - FINOMHANGOLÁSOK (PREMIUM UI)
+   ========================================== */
+
+/* 1. EGYEDI GÖRGETŐSÁV (SCROLLBAR) */
+html[data-theme="dark"] ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+html[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: var(--bulma-background);
+}
+html[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: var(--bulma-scheme-main-ter);
+    border-radius: 5px;
+    border: 2px solid var(--bulma-background); /* Hogy ne érjen ki a széléig */
+}
+html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: #52525b; /* Egeret ráhúzva kicsit kivilágosodik */
+}
+
+/* 2. KÖZÉPSŐ ÉS JOBB OSZLOP ELVÁLASZTÓ VONALA */
+/* Fikszáljuk a világos módot is, ha eddig nem volt vonal, és ázínezzük sötétben */
+.dash-right {
+    border-left: 1px solid #e2e8f0; 
+}
+html[data-theme="dark"] .dash-right {
+    border-left: 1px solid var(--bulma-border) !important;
+}
+
+/* 3. A BADGE-EK (Címkék) ÉS TAG-EK DARK MODE OPTIMALIZÁLÁSA */
+/* Alap is-light felülírása: sötétebb háttér, világosabb szöveg */
+html[data-theme="dark"] .tag.is-light {
+    background-color: var(--bulma-scheme-main-bis) !important;
+    color: var(--bulma-text-strong) !important;
+    border: 1px solid var(--bulma-border);
+}
+
+/* Kifejezetten a statisztikák és a tantárgyak badge színei (Elegáns, neonos beütéssel) */
+html[data-theme="dark"] .tag.is-info.is-light {
+    border-color: #3b82f6; 
+    color: #93c5fd !important; 
+    background-color: rgba(59, 130, 246, 0.15) !important; 
+}
+html[data-theme="dark"] .tag.is-warning.is-light {
+    border-color: #eab308; 
+    color: #fde047 !important; 
+    background-color: rgba(234, 179, 8, 0.15) !important; 
+}
+html[data-theme="dark"] .tag.is-danger.is-light {
+    border-color: #ef4444; 
+    color: #fca5a5 !important; 
+    background-color: rgba(239, 68, 68, 0.15) !important; 
+}
+html[data-theme="dark"] .tag.is-success.is-light {
+    border-color: #22c55e; 
+    color: #86efac !important; 
+    background-color: rgba(34, 197, 94, 0.15) !important; 
+}
+
+/* 4. "NINCS KÖZELGŐ SZÁMONKÉRÉS" ÉS EGYÉB LIGHT HÁTTEREK JAVÍTÁSA */
+/* Minden, ami Bulma-ban 'has-background-light' (pl. a Dashboard fejléc alatti doboz) */
+html[data-theme="dark"] .has-background-light,
+html[data-theme="dark"] .has-background-info-light,
+html[data-theme="dark"] .notification.is-light,
+html[data-theme="dark"] td.has-background-light {
+    background-color: var(--bulma-scheme-main-bis) !important;
+    color: var(--bulma-text) !important;
+}
+
+html[data-theme="dark"] .has-text-info-dark {
+    color: #93c5fd !important;
+}
+
+/* 5. FÉLÉV HALADÁSA PROGRESS BAR SÖTÉT MÓDBAN */
+html[data-theme="dark"] .progress::-webkit-progress-bar {
+    background-color: var(--bulma-scheme-main-ter);
+}
+html[data-theme="dark"] .progress::-webkit-progress-value {
+    background-color: #3b82f6;
+}
+html[data-theme="dark"] .progress::-moz-progress-bar {
+    background-color: #3b82f6;
+}
+
+/* ==========================================
+   LAYOUT STABILIZÁLÁS (Ugrálás megszüntetése Light/Dark mód között)
+   ========================================== */
+
+/* 1. GLOBÁLIS GÖRGETŐSÁV (Mindkét módra vonatkozik, így nem ugrik a képernyő szélessége!) */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+/* Világos mód csúszkája */
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 5px;
+    border: 2px solid #f8fafc; /* Világos háttérhez simuló szegély */
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Sötét mód csúszkája (csak a színe változik, a mérete 10px marad!) */
+html[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: #52525b;
+    border-color: var(--bulma-background);
+}
+html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: #71717a;
+}
+html[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: var(--bulma-background);
+}
+
+/* 2. ÁTLÁTSZÓ SZEGÉLYEK VILÁGOS MÓDBAN (Hogy ne nőjenek meg az elemek sötét módban) */
+/* A tag-ek és dobozok alapból kapnak egy 1px-es átlátszó keretet */
+.tag, 
+.box, 
+.modal-card-head, 
+.modal-card-foot, 
+.modal-card-body,
+.custom-field-row, 
+.max-point-box, 
+#add-zh-date-box, 
+.notes-box, 
+.zh-modal-header-box {
+    border: 1px solid transparent; 
+}
+
+/* 3. A jobb oldali oszlop elválasztó vonalának fixálása */
+.dash-right {
+    border-left: 1px solid #e2e8f0; 
+}
+html[data-theme="dark"] .dash-right {
+    border-left-color: var(--bulma-border) !important; /* Itt csak a SZÍNT változtatjuk, nem adunk hozzá új vonalat */
+}
+
+/* ==========================================
+   MENÜSÁV (SIDEBAR) STABILIZÁLÁSA
+   ========================================== */
+
+/* 1. Alapértelmezett (világos) mód: a szegély és a margó itt is létezik, csak láthatatlan! */
+.sidebar {
+    border-right: 1px solid transparent; 
+}
+
+.user-profile-card {
+    border: 1px solid transparent;
+    border-radius: 8px;
+    margin: 10px; /* Foglalja le a helyet világos módban is! */
+}
+
+/* 2. Sötét módban MÁR CSAK A SZÍNEKET cseréljük, a méreteket nem bántjuk! */
+html[data-theme="dark"] .sidebar {
+    background-color: var(--bulma-scheme-main);
+    border-right-color: var(--bulma-border) !important; 
+    border-right-width: 1px !important;
+    border-right-style: solid !important;
+}
+
+html[data-theme="dark"] .user-profile-card {
+    background-color: var(--bulma-scheme-main-bis);
+    border-color: var(--bulma-border) !important;
+}
+
+.timetable-wrapper {
+    overflow-y: auto !important;
+}
+
+
+
+/* ==========================================
+   SMART MENÜ ÉS ALMENÜ ANIMÁCIÓ (TIMETABLE)
+   ========================================== */
+
+/* Fő menü (Egyetlen lekerekített téglalap) */
+.tt-smart-menu {
+    position: absolute;
+    z-index: 50;
+    background: var(--bulma-scheme-main);
+    border: 1px solid var(--bulma-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: visible; /* Fontos, hogy az almenü kilógjon */
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.95);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    width: 170px;
+}
+.tt-smart-menu.is-active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+}
+
+.tt-menu-item {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--bulma-border);
+    padding: 12px 15px;
+    text-align: left;
+    cursor: pointer;
+    color: var(--bulma-text);
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.15s;
+}
+.tt-menu-item:last-child { border-bottom: none; }
+.tt-menu-item:hover { background: var(--bulma-scheme-main-bis); }
+
+/* --- ALMENÜ ANIMÁCIÓ --- */
+.tt-submenu-wrapper {
+    position: absolute;
+    left: 100%; /* A fő menü jobb oldala mellé */
+    bottom: 0; /* Az "Új esemény" gomb mellé igazítva */
+    margin-left: 6px;
+    pointer-events: none;
+}
+
+.tt-submenu-track {
+    background: var(--bulma-scheme-main);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    border: 1px solid var(--bulma-border);
+    overflow: hidden;
+    width: 0;        /* 1. fázis kezdete */
+    height: 42px;    /* Egy gomb magassága */
+    opacity: 0;
+    position: relative;
+    transition: width 0.2s ease-out, opacity 0.2s; /* Szélesedés jobbra */
+}
+
+/* 1. Fázis: Kicsúszik jobbra */
+.tt-submenu-wrapper.is-open { pointer-events: auto; }
+.tt-submenu-wrapper.is-open .tt-submenu-track {
+    width: 120px;
+    opacity: 1;
+}
+
+/* 2. Fázis: Kinyílik fel és le */
+.tt-submenu-wrapper.is-expanded .tt-submenu-track {
+    height: 126px; /* 3 * 42px */
+    transform: translateY(42px); /* Hogy felfelé is nyíljon, ne csak lefelé */
+    transition: height 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2), transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+}
+
+.tt-sub-items-container {
+    position: absolute;
+    top: -42px; /* Középső (Vizsga) gombot tartja fókuszban az elején */
+    width: 120px;
+    transition: top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+}
+.tt-submenu-wrapper.is-expanded .tt-sub-items-container {
+    top: 0; /* A tartalom a helyére csúszik */
+}
+
+.tt-sub-item {
+    height: 42px; width: 100%; border: none; background: transparent;
+    cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center;
+    border-bottom: 1px solid var(--bulma-border);
+}
+.tt-sub-item:last-child { border-bottom: none; }
+.tt-sub-item:hover { background: var(--bulma-scheme-main-bis); }
+
+/* SMART MENÜ ALMENÜ BALRA NYITÁSA (Péntek, Csütörtök) */
+.tt-submenu-wrapper.is-left-side {
+    left: auto;
+    right: 100%; /* A fő menü bal oldalához igazítja */
+    margin-left: 0;
+    margin-right: 6px;
+    display: flex;
+    justify-content: flex-end; /* Biztosítja, hogy a 0-120px animáció balra terjeszkedjen */
+}
+
+/* ==========================================
+   ALMENÜ OKOS IRÁNYÍTÁSA (FENT / LENT NYITÁS)
+   ========================================== */
+
+/* 1. Ha a naptár alján vagyunk: csak felfelé nyílik az almenü */
+.tt-submenu-wrapper.is-up.is-expanded .tt-submenu-track {
+    transform: translateY(0) !important;
+}
+.tt-submenu-wrapper.is-up .tt-sub-items-container {
+    top: auto !important;
+    bottom: 0 !important;
+}
+
+/* 2. Ha a naptár tetején vagyunk: csak lefelé nyílik az almenü */
+.tt-submenu-wrapper.is-down.is-expanded .tt-submenu-track {
+    transform: translateY(84px) !important;
+}
+.tt-submenu-wrapper.is-down .tt-sub-items-container {
+    top: 0 !important;
+}
+
+/* ==========================================
+   SIDE-DRAWER MODALOK (HOZZÁADÁS + MEGTEKINTÉS)
+   Balról jobbra kicsúszó, letisztult panelek
+   ========================================== */
+
+/* 1. Modal Konténer (A Sidebar mellé feszítve) */
+#add-class-modal,
+#add-zh-modal,
+#add-exam-modal,
+#add-subject-modal,
+#settings-modal,
+#view-zh-modal,
+#view-exam-modal,
+#view-subject-modal,
+#view-class-modal {
+    display: flex !important; 
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    left: var(--sidebar-width) !important; 
+    justify-content: flex-start !important; 
+    align-items: stretch !important; 
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important; 
+    z-index: 100 !important;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+@media (max-width: 768px) {
+    #add-class-modal, #add-zh-modal, #add-exam-modal, #add-subject-modal, #settings-modal,
+    #view-zh-modal, #view-exam-modal, #view-subject-modal, #view-class-modal {
+        left: 0 !important;
+    }
+}
+
+/* 2. Háttér Homályosítás */
+#add-class-modal .modal-background,
+#add-zh-modal .modal-background,
+#add-exam-modal .modal-background,
+#add-subject-modal .modal-background,
+#settings-modal .modal-background,
+#view-zh-modal .modal-background,
+#view-exam-modal .modal-background,
+#view-subject-modal .modal-background,
+#view-class-modal .modal-background {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.3s ease !important;
+}
+
+/* 3. A Kártya Animációja és Méretezése */
+#add-class-modal .modal-card,
+#add-zh-modal .modal-card,
+#add-exam-modal .modal-card,
+#add-subject-modal .modal-card,
+#settings-modal .modal-card,
+#view-zh-modal .modal-card,
+#view-exam-modal .modal-card,
+#view-subject-modal .modal-card,
+#view-class-modal .modal-card {
+    margin: 0 !important;
+    width: 45vw !important; 
+    min-width: 400px !important;
+    max-width: 600px !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 24px 24px 0 !important; 
+    box-shadow: 15px 0 40px rgba(0,0,0,0.15) !important;
+    background-color: var(--bulma-scheme-main, #fff) !important;
+    
+    /* REJTETT ÁLLAPOT: A kártya a saját szélességével balra van tolva */
+    transform: translateX(-100%) !important; 
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    will-change: transform;
+}
+
+html[data-theme="dark"] .modal-card {
+    box-shadow: 15px 0 50px rgba(0,0,0,0.8) !important;
+    border-right: 1px solid var(--bulma-border);
+}
+
+/* --- JAVÍTOTT AKTÍV ÁLLAPOT (Minden modál explicit ID-val felülírva!) --- */
+#add-class-modal.is-active,
+#add-zh-modal.is-active,
+#add-exam-modal.is-active,
+#add-subject-modal.is-active,
+#settings-modal.is-active,
+#view-zh-modal.is-active,
+#view-exam-modal.is-active,
+#view-subject-modal.is-active,
+#view-class-modal.is-active {
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+#add-class-modal.is-active .modal-background,
+#add-zh-modal.is-active .modal-background,
+#add-exam-modal.is-active .modal-background,
+#add-subject-modal.is-active .modal-background,
+#settings-modal.is-active .modal-background,
+#view-zh-modal.is-active .modal-background,
+#view-exam-modal.is-active .modal-background,
+#view-subject-modal.is-active .modal-background,
+#view-class-modal.is-active .modal-background {
+    opacity: 1 !important;
+}
+
+#add-class-modal.is-active .modal-card,
+#add-zh-modal.is-active .modal-card,
+#add-exam-modal.is-active .modal-card,
+#add-subject-modal.is-active .modal-card,
+#settings-modal.is-active .modal-card,
+#view-zh-modal.is-active .modal-card,
+#view-exam-modal.is-active .modal-card,
+#view-subject-modal.is-active .modal-card,
+#view-class-modal.is-active .modal-card {
+    transform: translateX(0) !important; 
+}
+
+/* 4. Belső Stilizálás (Fejléc, Láb, Árnyék eltüntetés) */
+#add-class-modal .modal-card-head,
+#add-zh-modal .modal-card-head,
+#add-exam-modal .modal-card-head,
+#add-subject-modal .modal-card-head,
+#settings-modal .modal-card-head,
+#view-zh-modal .modal-card-head,
+#view-exam-modal .modal-card-head,
+#view-subject-modal .modal-card-head,
+#view-class-modal .modal-card-head {
+    background-color: transparent !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    padding: 30px 40px 10px 40px !important;
+}
+
+#add-class-modal .modal-card-body,
+#add-zh-modal .modal-card-body,
+#add-exam-modal .modal-card-body,
+#add-subject-modal .modal-card-body,
+#settings-modal .modal-card-body,
+#view-zh-modal .modal-card-body,
+#view-exam-modal .modal-card-body,
+#view-subject-modal .modal-card-body,
+#view-class-modal .modal-card-body {
+    background-color: transparent !important;
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+}
+
+#add-class-modal .modal-card-foot,
+#add-zh-modal .modal-card-foot,
+#add-exam-modal .modal-card-foot,
+#add-subject-modal .modal-card-foot,
+#settings-modal .modal-card-foot,
+#view-zh-modal .modal-card-foot,
+#view-exam-modal .modal-card-foot,
+#view-subject-modal .modal-card-foot,
+#view-class-modal .modal-card-foot {
+    background-color: var(--bulma-scheme-main-bis) !important;
+    border-top: 1px solid var(--bulma-border) !important;
+    border-radius: 0 0 24px 0 !important;
+    padding: 20px 40px !important;
+}
+
+/* Címek formázása */
+.modal-card-title, #add-zh-modal-title, #view-zh-title {
+    font-size: 1.6rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.5px;
+}
+
+/* Bezáró gomb (X) animáció */
+.modal-card-head .delete,
+#add-zh-modal .delete,
+#view-zh-modal .delete {
+    background-color: var(--bulma-scheme-main-bis) !important;
+    transition: 0.2s ease !important;
+}
+.modal-card-head .delete:hover,
+#add-zh-modal .delete:hover,
+#view-zh-modal .delete:hover {
+    background-color: var(--bulma-danger) !important;
+    transform: rotate(90deg);
+}

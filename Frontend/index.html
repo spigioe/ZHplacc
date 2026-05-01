@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>platZH Bejelentkezés</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+    <link rel="stylesheet" href="css/index.css">
+
+    <script>
+        // FOUC (villogás) védelem a témához
+        const savedTheme = localStorage.getItem("zhub-theme") || "light";
+        document.documentElement.setAttribute("data-theme", savedTheme);
+    </script>
+</head>
+<body>
+
+    <button class="button is-small theme-toggle-btn" id="login-theme-toggle">
+        🌙 Sötét mód
+    </button>
+
+    <section class="hero is-fullheight login-hero">
+        <div class="hero-body">
+            <div class="container is-centered">
+                <div class="columns is-centered">
+                    <div class="column is-4-desktop is-6-tablet is-11-mobile">
+                        
+                        <div class="login-card has-text-centered">
+                            <div class="zhub-logo">🎓</div>
+                            <h1 class="title is-3 has-text-link mt-2 mb-2">platZH</h1>
+                            <p class="subtitle is-6 has-text-grey mb-5">Csak azért hogy ne vessz el</p>
+                            
+                            <hr style="background-color: var(--bulma-border); height: 1px; margin: 1.5rem 0;">
+
+                            <form id="login-form"> 
+                                
+                                <div id="login-error-msg" class="notification is-danger is-light is-hidden is-size-7 p-2 mb-4">
+                                    Hibás e-mail cím vagy jelszó!
+                                </div>
+
+                                <div class="field">
+                                    <label class="label has-text-grey">E-mail cím</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="email" id="login-email" placeholder="pelda@uni-obuda.hu" required>
+                                        <span class="icon is-small is-left">✉️</span>
+                                    </div>
+                                </div>
+
+                                <div class="field">
+                                    <label class="label has-text-grey">Jelszó</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="password" id="login-password" placeholder="••••••••" required>
+                                        <span class="icon is-small is-left">🔒</span>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="button is-link is-fullwidth is-medium mt-4" id="login-btn">
+                                    <strong>Bejelentkezés</strong>
+                                </button>
+                            </form>
+
+                            <div class="mt-5 is-size-7">
+                                <p class="has-text-grey">Nincs még fiókod? <a href="register.html" class="has-text-link has-text-weight-bold">Regisztrálj itt!</a></p>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <script type="module" src="js/auth.js"></script>
+</body>
+</html>

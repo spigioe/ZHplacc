@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>platZH - Regisztráció</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+    <link rel="stylesheet" href="css/register.css">
+
+    <script>
+        const savedTheme = localStorage.getItem("zhub-theme") || "light";
+        document.documentElement.setAttribute("data-theme", savedTheme);
+    </script>
+</head>
+<body>
+
+    <button class="button is-small theme-toggle-btn" id="register-theme-toggle">
+        🌙 Sötét mód
+    </button>
+
+    <section class="hero is-fullheight login-hero">
+        <div class="hero-body pt-0 pb-0">
+            <div class="container">
+                <div class="columns is-centered">
+                    <div class="column is-5-desktop is-7-tablet is-11-mobile">
+                        
+                        <div class="login-card has-text-centered mt-5 mb-5">
+                            
+                            <div class="zhub-logo">🚀</div>
+                            <h1 class="title is-3 has-text-link mt-2 mb-2">Új platZH Fiók</h1>
+                            <p class="subtitle is-6 has-text-grey mb-4">Gyere inni tesó, ráérnek a zh-k.</p>
+                            
+                            <hr style="background-color: var(--bulma-border); height: 1px; margin: 1.5rem 0;">
+
+                            <form id="register-form">
+                                
+                                <div id="reg-error-msg" class="notification is-danger is-light is-hidden is-size-7 p-2 mb-4">
+                                    Hiba történt!
+                                </div>
+
+                                <div class="field has-text-left">
+                                    <label class="label is-small has-text-grey">Teljes név</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="text" id="reg-name" placeholder="Pl.: Neumann János" required>
+                                        <span class="icon is-small is-left">👤</span>
+                                    </div>
+                                </div>
+
+                                <div class="field has-text-left">
+                                    <label class="label is-small has-text-grey">E-mail cím</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="email" id="reg-email" placeholder="pelda@uni-obuda.hu" required>
+                                        <span class="icon is-small is-left">✉️</span>
+                                    </div>
+                                </div>
+
+                                <div class="columns is-mobile mb-0">
+                                    <div class="column is-half field has-text-left mb-3">
+                                        <label class="label is-small has-text-grey">Jelszó</label>
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="password" id="reg-password" placeholder="••••••••" required minlength="6">
+                                            <span class="icon is-small is-left">🔒</span>
+                                        </div>
+                                    </div>
+                                    <div class="column is-half field has-text-left mb-3">
+                                        <label class="label is-small has-text-grey">Jelszó újra</label>
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="password" id="reg-password-confirm" placeholder="••••••••" required minlength="6">
+                                            <span class="icon is-small is-left">🔐</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="field has-text-left mb-5">
+                                    <label class="checkbox is-size-7 has-text-grey">
+                                        <input type="checkbox" required>
+                                        Elfogadom a <a href="#" class="has-text-link">Felhasználási feltételeket</a>.
+                                    </label>
+                                </div>
+
+                                <div class="control">
+                                    <button type="submit" class="button is-link is-fullwidth is-medium mt-4" id="register-btn">
+                                        <strong>Regisztráció</strong>
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div class="mt-5 is-size-7">
+                                <p class="has-text-grey">Már van fiókod? <a href="index.html" class="has-text-link has-text-weight-bold">Jelentkezz be!</a></p>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script type="module" src="js/auth.js"></script>
+</body>
+</html>
