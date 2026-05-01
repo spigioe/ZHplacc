@@ -1,30 +1,48 @@
 import { state } from '../state.js';
 import { escapeHTML } from '../api.js';
-
-// AZ UGYANOLYAN IMPORTOK MINT A TIMETABLE-BEN
 import { openViewZhModal, openAddZhModal } from '../zarthelyik.js';
 import { openViewExamModal, openAddExamModal } from '../exams.js';
 
 export async function renderAssessments(container) {
+    // 1. Dátum "ma éjfél" kiszámítása (hogy a mai ZH is megjelenjen)
     const now = new Date();
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
     // ZH-k és Vizsgák összefésülése és felcímkézése
     const futureZhs = (state.allZhs || []).map(zh => ({ ...zh, isExam: false }));
     const futureExams = (state.allExams || []).map(ex => ({ ...ex, isExam: true }));
     
+    // Szűrés CSAK A MAI ÉS JÖVŐBELI eseményekre
     const allEvents = [...futureZhs, ...futureExams]
-        .filter(evt => new Date(evt.dateOf) >= now) // Csak a jövőbeliek
-        .sort((a, b) => new Date(a.dateOf) - new Date(b.dateOf));
+        .filter(evt => {
+            const eventDate = new Date(evt.dateOf || evt.DateOf);
+            return eventDate >= todayMidnight; 
+        })
+        .sort((a, b) => new Date(a.dateOf || a.DateOf) - new Date(b.dateOf || b.DateOf));
 
+    // Sorok (HTML) legenerálása
     const rowsHtml = allEvents.map(evt => {
-        const d = new Date(evt.dateOf);
+        // Dátum és idő pontos konvertálása
+        const d = new Date(evt.dateOf || evt.DateOf);
         const dateStr = d.toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' });
         const timeStr = d.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' });
         
-        const diffDays = Math.round(Math.abs(d - now) / (1000 * 60 * 60 * 24));
+        // Okos visszaszámlálás (csak a napokat nézzük, órákat nem, hogy ne kavarjon be a kerekítés)
+        const eventMidnight = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const diffDays = Math.round((eventMidnight - todayMidnight) / (1000 * 60 * 60 * 24));
+        
         let countdown = `Még ${diffDays} nap`;
-        if (diffDays === 0) countdown = 'Ma!';
-        if (diffDays === 1) countdown = 'Holnap!';
+        let tagClass = "is-light"; // Alapértelmezett szürke
+
+        if (diffDays === 0) {
+            countdown = 'Ma!';
+            tagClass = "is-danger";
+        } else if (diffDays === 1) {
+            countdown = 'Holnap!';
+            tagClass = "is-warning";
+        } else if (diffDays <= 3) {
+            tagClass = "is-warning is-light";
+        }
 
         const typeTag = evt.isExam ? '<span class="tag is-danger is-light">🎓 Vizsga</span>' : '<span class="tag is-warning is-light">📝 ZH</span>';
 
@@ -36,8 +54,8 @@ export async function renderAssessments(container) {
                 </td>
                 <td>${typeTag}</td>
                 <td class="has-text-weight-bold" style="color: #3b82f6;">${escapeHTML(evt.subjectName || evt.SubjectName || "Ismeretlen")}</td>
-                <td class="has-text-grey">${escapeHTML(evt.room || "-")}</td>
-                <td><span class="tag ${diffDays <= 3 ? 'is-danger' : 'is-light'}">${countdown}</span></td>
+                <td class="has-text-grey">${escapeHTML(evt.room || evt.Room || "-")}</td>
+                <td><span class="tag ${tagClass} has-text-weight-bold">${countdown}</span></td>
                 <td class="has-text-right">
                     <button class="button is-small is-ghost btn-view-assessment" data-id="${evt.id || evt.Id}" data-type="${evt.isExam ? 'exam' : 'zh'}">Részletek</button>
                 </td>
