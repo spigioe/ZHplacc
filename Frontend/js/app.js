@@ -20,7 +20,9 @@ import {
     initThemeToggle, 
     toggleTheme, 
     initAutoWeekCalculation, 
-    closeSyncProgressModal 
+    closeSyncProgressModal,
+    closeMissingLinkModal,
+    goToSettingsFromMissingLink
 } from './sync.js';
 import { 
     fetchSettings, 
@@ -125,7 +127,8 @@ function setupGlobalEventListeners() {
     document.getElementById("clear-db-close-btn")?.addEventListener("click", closeClearDbModal);
     document.getElementById("clear-db-cancel-btn")?.addEventListener("click", closeClearDbModal);
     document.getElementById("clear-db-confirm-btn")?.addEventListener("click", executeClearDb);
-
+    document.getElementById("missing-link-cancel-btn")?.addEventListener("click", closeMissingLinkModal);
+    document.getElementById("missing-link-settings-btn")?.addEventListener("click", goToSettingsFromMissingLink);
     // --- EGYÉNI ÓRA FELVÉTELE MODÁL ---
     document.getElementById("add-class-close-btn")?.addEventListener("click", closeAddClassModal);
     document.getElementById("add-class-cancel-btn-bottom")?.addEventListener("click", closeAddClassModal);
