@@ -4,8 +4,8 @@ import { escapeHTML } from '../api.js';
 import { calculateCurrentWeek } from '../ui.js';
 import { openAddClassModal, openViewClassModal, deleteCustomClass } from '../class.js';
 import { getAutoSemesterStart } from '../sync.js';
-import { openViewZhModal } from '../zarthelyik.js';
-import { openViewExamModal } from '../exams.js';
+import { openViewZhModal, openAddZhModal} from '../zarthelyik.js';
+import { openViewExamModal, openAddExamModal} from '../exams.js';
 
 let displayWeek = null;
 
@@ -373,15 +373,14 @@ export async function renderTimetable(container) {
 
     // --- ALMENÜ GOMBOK BEKÖTÉSE ---
     document.getElementById('tt-btn-type-zh').addEventListener('click', (e) => {
-        e.stopPropagation(); // Megakadályozza, hogy a naptár rács is érzékelje a kattintást
+        e.stopPropagation(); 
         closeMenu(); 
         
-        // 1. Modál megnyitása biztosan
-        document.getElementById('add-zh-modal')?.classList.add('is-active');
-        // Ha van globális függvény az alaphelyzetbe állításra, meghívjuk
-        if (typeof window.openAddZhModal === 'function') window.openAddZhModal();
+        // Közvetlenül meghívjuk az importált függvényt! 
+        // (Ez rátesszi az is-active-ot ÉS feltölti a dropdown-t)
+        openAddZhModal();
 
-        // 2. Dátum betöltése
+        // Dátum betöltése
         setTimeout(() => { 
             if(window.tempEventData) document.getElementById('add-zh-dateof').value = window.tempEventData.dateTimeStr; 
         }, 50);
@@ -391,20 +390,18 @@ export async function renderTimetable(container) {
         e.stopPropagation();
         closeMenu(); 
         
-        document.getElementById('add-exam-modal')?.classList.add('is-active');
-        if (typeof window.openAddExamModal === 'function') window.openAddExamModal();
+        openAddExamModal();
 
         setTimeout(() => { 
             if(window.tempEventData) document.getElementById('add-exam-dateof').value = window.tempEventData.dateTimeStr; 
         }, 50);
     });
-
+    
     document.getElementById('tt-btn-type-class').addEventListener('click', (e) => {
         e.stopPropagation();
         closeMenu(); 
         
-        document.getElementById('add-class-modal')?.classList.add('is-active');
-        if (typeof window.openAddClassModal === 'function') window.openAddClassModal();
+        openAddClassModal();
 
         setTimeout(() => {
             if (!window.tempEventData) return;

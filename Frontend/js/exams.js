@@ -48,7 +48,7 @@ export function openAddExamModal() {
         
         // SZIGORÚ SZŰRÉS: Csak az aktív félév tárgyai jöhetnek be
         const currentSubjects = (state.allSubjects || []).filter(s => s.semesterTag === activeSemester);
-
+        console.log(state.allSubjects);
         const options = currentSubjects.map(s => 
             `<option value="${s.id || s.Id}">${escapeHTML(s.name || s.Name)}</option>`
         ).join('');
