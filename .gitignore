@@ -1,0 +1,4 @@
+Backend/bin/
+Backendobj/
+Backend/appsettings.json
+Backend/appsettings.Development.json
