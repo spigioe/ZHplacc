@@ -2,9 +2,10 @@
 import { state } from '../state.js';
 import { escapeHTML } from '../api.js';
 import { calculateCurrentWeek } from '../ui.js';
-import { renderSidebarTodosWidget } from './todos.js';
+import { renderSidebarTodosWidget, renderTodos } from './todos.js';
 import { openAddZhModal, openViewZhModal, deleteZh } from '../zarthelyik.js';
 import { openAddExamModal, openViewExamModal, deleteExam } from '../exams.js';
+import { renderSidebarTodosWidget } from './todos.js';
 
 export async function renderDashboard(container) {
     const now = new Date();
@@ -131,15 +132,20 @@ export async function renderDashboard(container) {
                 </div>
 
                 <div class="box p-4" style="border: 1px dashed var(--bulma-border); box-shadow: none; background: transparent;">
-                    <div class="has-text-centered py-3">
-                        <span class="icon is-large has-text-grey-light mb-2"><i class="fa-solid fa-list-check fa-2x"></i></span>
-                        <h3 class="title is-6 has-text-grey mb-1">Napi Teendők</h3>
-                        <p class="is-size-7 has-text-grey">Hamarosan érkezik...</p>
+                    <div id="sidebar-todo-widget">
+                        <!-- Kezdeti töltő állapot, amíg a widget életre nem kel -->
+                        <div class="has-text-centered py-3">
+                            <span class="icon is-large has-text-grey-light mb-2"><i class="fa-solid fa-list-check fa-2x"></i></span>
+                            <h3 class="title is-6 has-text-grey mb-1">Napi Teendők</h3>
+                            <div class="loader is-loading mx-auto mt-2"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     `;
+
+    renderSidebarTodosWidget();
 
     // ESEMÉNYKEZELŐK BEKÖTÉSE
     document.getElementById('dash-btn-add-zh')?.addEventListener('click', (e) => { e.preventDefault(); openAddZhModal(); });
