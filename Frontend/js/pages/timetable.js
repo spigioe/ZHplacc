@@ -1,7 +1,7 @@
 // js/pages/timetable.js
 import { state } from '../state.js';
 import { escapeHTML, apiFetch} from '../api.js';
-import { calculateCurrentWeek } from '../ui.js';
+import { calculateCurrentWeek, showToast} from '../ui.js';
 import { openAddClassModal, openViewClassModal, deleteCustomClass } from '../class.js';
 import { getAutoSemesterStart } from '../sync.js';
 import { openViewZhModal, openAddZhModal} from '../zarthelyik.js';
