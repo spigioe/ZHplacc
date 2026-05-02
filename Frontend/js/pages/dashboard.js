@@ -137,17 +137,6 @@ export async function renderDashboard(container) {
                         <p class="is-size-7 has-text-grey">Hamarosan érkezik...</p>
                     </div>
                 </div>
-
-                <div class="box p-4" style="border: 1px dashed var(--bulma-border); box-shadow: none; background: transparent;">
-                    <div class=" py-3">
-                        <span class="icon is-large has-text-grey-light mb-2"><i class="fa-solid fa-list-check fa-2x"></i></span>
-                        <h3 class="title is-6 has-text-grey mb-1">Latest bugfixes:</h3>
-                        <ul>
-                            <li class="has-text-grey">Órarendből újra hozzá lehet adni zh-t és vizsgát tárgyakkal</li>
-                            <li class="has-text-grey">Számonkérések fül átstrukturálva, funkcionalitás megadva</li>
-                        </ul>
-                    </div>
-                </div>
             </div>
         </div>
     `;

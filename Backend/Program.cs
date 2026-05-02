@@ -640,6 +640,43 @@ app.MapPost("/api/auth/reset-password", async (ResetPasswordDto dto) =>
     return Results.Ok(new { message = "Sikeres jelszóváltoztatás! Most már bejelentkezhetsz az új jelszavaddal." });
 });
 
+app.MapGet("/api/todos", async (ClaimsPrincipal user) =>
+{
+    int userId = GetUserId(user);
+    using var connection = new MySqlConnection(connectionString);
+    var todos = await connection.QueryAsync<TodoItem>(
+        "SELECT id AS Id, user_id AS UserId, title AS Title, is_completed AS IsCompleted, due_date AS DueDate FROM Todos WHERE user_id = @UserId ORDER BY is_completed ASC, due_date ASC", 
+        new { UserId = userId });
+    return Results.Ok(todos);
+}).RequireAuthorization();
+
+app.MapPost("/api/todos", async (ClaimsPrincipal user, CreateTodoDto dto) =>
+{
+    int userId = GetUserId(user);
+    if (string.IsNullOrWhiteSpace(dto.Title)) return Results.BadRequest("A feladat neve kötelező!");
+
+    using var connection = new MySqlConnection(connectionString);
+    var sql = "INSERT INTO Todos (user_id, title, due_date, is_completed) VALUES (@UserId, @Title, @DueDate, FALSE)";
+    await connection.ExecuteAsync(sql, new { UserId = userId, Title = dto.Title, DueDate = dto.DueDate });
+    return Results.Ok(new { message = "Feladat hozzáadva!" });
+}).RequireAuthorization();
+
+app.MapPut("/api/todos/{id:int}/toggle", async (ClaimsPrincipal user, int id) =>
+{
+    int userId = GetUserId(user);
+    using var connection = new MySqlConnection(connectionString);
+    var sql = "UPDATE Todos SET is_completed = NOT is_completed WHERE id = @Id AND user_id = @UserId";
+    var affected = await connection.ExecuteAsync(sql, new { Id = id, UserId = userId });
+    return affected > 0 ? Results.Ok(new { message = "Állapot frissítve!" }) : Results.NotFound();
+}).RequireAuthorization();
+
+app.MapDelete("/api/todos/{id:int}", async (ClaimsPrincipal user, int id) =>
+{
+    int userId = GetUserId(user);
+    using var connection = new MySqlConnection(connectionString);
+    var affected = await connection.ExecuteAsync("DELETE FROM Todos WHERE id = @Id AND user_id = @UserId", new { Id = id, UserId = userId });
+    return affected > 0 ? Results.Ok(new { message = "Feladat törölve!" }) : Results.NotFound();
+}).RequireAuthorization();
 
 app.Run();
 
@@ -708,4 +745,16 @@ public class ExamSyncDto
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public string SemesterTag { get; set; }
+}
+
+public class TodoItem {
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public string Title { get; set; } = "";
+    public bool IsCompleted { get; set; }
+    public DateTime? DueDate { get; set; }
+}
+public class CreateTodoDto {
+    public string Title { get; set; } = "";
+    public DateTime? DueDate { get; set; }
 }

@@ -12,6 +12,7 @@ import { renderDashboard } from './pages/dashboard.js';
 import { renderTimetable } from './pages/timetable.js';
 import { renderSubjects } from './pages/subjects.js';
 import { renderAssessments } from './pages/assessments.js';
+import { renderTodos } from './pages/todos.js';
 
 // API és Rendszer
 import { logout, fetchUserProfile, escapeHTML} from './api.js';
@@ -73,7 +74,8 @@ const routes = {
     'dashboard': renderDashboard,
     'timetable': renderTimetable,
     'subjects': renderSubjects,
-    'assessments': renderAssessments
+    'assessments': renderAssessments,
+    'todos': renderTodos
 };
 
 const routerView = document.getElementById('router-view');
