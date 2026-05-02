@@ -2,13 +2,9 @@
 import { apiFetch, escapeHTML } from '../api.js';
 import { showToast } from '../ui.js';
 import { state } from '../state.js';
-import { calculateCurrentWeek } from '../ui.js';
-
-import { openAddZhModal, openViewZhModal, deleteZh } from '../zarthelyik.js';
-import { openAddExamModal, openViewExamModal, deleteExam } from '../exams.js';
 
 export async function renderTodos(container) {
-    // 1. Dinamikus CSS a teendők lebegő effektjeihez
+    // Dinamikus CSS
     if (!document.getElementById("todo-custom-styles")) {
         const style = document.createElement("style");
         style.id = "todo-custom-styles";
@@ -21,44 +17,30 @@ export async function renderTodos(container) {
             .todo-input-wrapper:focus-within { border-color: var(--bulma-link); }
             .todo-checkbox-custom { transform: scale(1.4); cursor: pointer; accent-color: var(--bulma-link); }
             .dash-right { padding-left: 1.5rem; border-left: 1px solid var(--bulma-border); }
+            
+            /* Gördítősáv formázás a két oszlophoz */
+            .todo-scroll-area::-webkit-scrollbar { width: 6px; }
+            .todo-scroll-area::-webkit-scrollbar-thumb { background-color: var(--bulma-border); border-radius: 10px; }
         `;
         document.head.appendChild(style);
     }
-    const now = new Date();
 
-
-    // 2. Jobb oldali sáv adatai (Félév haladása)
-    const futureZhs = (state.allZhs || []).filter(zh => new Date(zh.dateOf) >= now).map(zh => ({ ...zh, isExam: false }));
-    const futureExams = (state.allExams || []).filter(ex => new Date(ex.dateOf) >= now).map(ex => ({ ...ex, isExam: true }));
-    const kozelgoEsemenyek = [...futureZhs, ...futureExams].sort((a, b) => new Date(a.dateOf) - new Date(b.dateOf)).slice(0, 4); 
-
-    const maxWeek = state.appSettings?.semesterLength || 14;
-    const currentWeek = calculateCurrentWeek() > 0 ? calculateCurrentWeek() : 1;
-    const felevSzazalek = Math.round((currentWeek / maxWeek) * 100);
-
-    // --- ÚJ STATISZTIKA (Csak az aktuális félév) ---
-    const activeSemester = state.currentSemesterStr;
-    const currentSubjects = (state.allSubjects || []).filter(s => (s.semesterTag || s.SemesterTag) === activeSemester);
-    const currentSubIds = currentSubjects.map(s => s.id || s.Id);
     
-    const vizsgasTargyakSzama = currentSubjects.filter(s => s.hasExam || s.HasExam).length;
-    // Megszámoljuk azokat a kiírt ZH-kat, amik az aktuális félév tárgyaihoz tartoznak
-    const aktualisZhkSzama = (state.allZhs || []).filter(zh => currentSubIds.includes(zh.subjectId || zh.SubjectId)).length;
 
-    // 3. HTML Generálás
+    // HTML Generálás (Kétoszlopos belső felépítés)
     container.innerHTML = `
         <div class="dashboard-view">
-            <!-- BAL OLDAL: TEENDŐK -->
+            <!-- BAL OLDAL: TEENDŐK (Szélesebb konténer a két oszlopnak) -->
             <div class="dash-center" style="display: flex; flex-direction: column; height: 100%; min-height: 0;">
                 
-                <div class="mb-5 mt-2" style="flex-shrink: 0;">
+                <div class="mb-4 mt-2" style="flex-shrink: 0;">
                     <h2 class="title is-3 mb-2 has-text-weight-bold">
                         <i class="fa-solid fa-clipboard-list has-text-link mr-2"></i> Teendők
                     </h2>
                     <p class="has-text-grey is-size-6">Ne tartsd fejben, írd le! Mi figyelünk a határidőkre.</p>
                 </div>
                 
-                <div class="box is-shadowless mb-5 p-2 todo-input-wrapper" style="background: var(--bulma-background);">
+                <div class="box is-shadowless mb-5 p-2 todo-input-wrapper" style="background: var(--bulma-background); flex-shrink: 0;">
                     <form id="add-todo-form" class="is-flex is-align-items-center" style="gap: 8px;">
                         <div class="control is-expanded has-icons-left">
                             <input class="input is-shadowless" type="text" id="new-todo-title" placeholder="Milyen feladat vár rád ma?" required style="border: none; background: transparent; box-shadow: none; font-size: 1.1rem; height: 45px;">
@@ -73,93 +55,56 @@ export async function renderTodos(container) {
                     </form>
                 </div>
 
-                <div style="overflow-y: auto; flex-grow: 1; padding-bottom: 30px; padding-right: 5px; padding-top: 10px;" id="todo-list-container">
-                    <div class="loader is-loading is-large mt-5 mx-auto"></div>
+                <!-- ÚJ KÉT OSZLOPOS ELRENDEZÉS -->
+                <div class="columns is-desktop is-variable is-4 m-0" style="flex-grow: 1; overflow-y: hidden; min-height: 0;">
+                    
+                    <!-- 1. Oszlop: Napi teendők -->
+                    <div class="column is-half" style="display: flex; flex-direction: column; height: 100%; padding-top: 0;">
+                        <h3 class="title is-5 mb-3 has-text-danger-dark is-flex is-align-items-center" style="flex-shrink: 0;">
+                            <span class="icon mr-2"><i class="fa-solid fa-calendar-day"></i></span> Mai Teendők
+                        </h3>
+                        <div id="todo-list-today" class="todo-scroll-area" style="overflow-y: auto; flex-grow: 1; padding-right: 5px; padding-bottom: 20px;">
+                            <div class="loader is-loading is-large mt-5 mx-auto"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 2. Oszlop: Későbbi teendők -->
+                    <div class="column is-half" style="display: flex; flex-direction: column; height: 100%; padding-top: 0;">
+                        <h3 class="title is-5 mb-3 has-text-grey-dark is-flex is-align-items-center" style="flex-shrink: 0;">
+                            <span class="icon mr-2"><i class="fa-regular fa-calendar-days"></i></span> Későbbiek
+                        </h3>
+                        <div id="todo-list-later" class="todo-scroll-area" style="overflow-y: auto; flex-grow: 1; padding-right: 5px; padding-bottom: 20px;">
+                            <!-- Ide jönnek a későbbi és kész feladatok -->
+                        </div>
+                    </div>
+
                 </div>
 
             </div>
 
-            <div class="dash-right">
-                <div class="buttons mb-4 is-flex-direction-column">
-                    <button class="button is-warning is-light is-fullwidth mb-2" id="dash-btn-add-zh">
-                        <i class="fa-solid fa-pen mr-2"></i> Új ZH rögzítése
-                    </button>
-                    <button class="button is-danger is-light is-fullwidth m-0" id="dash-btn-add-exam">
-                        <i class="fa-solid fa-graduation-cap mr-2"></i> Új Vizsga
-                    </button>
-                </div>
+            <!-- JOBB OLDAL: Csak hasznos gombok és félév haladása (Nincs teendő doboz) -->
+            <div class="dash-right is-hidden-touch">
                 
-                <div class="box p-4 mb-4 has-background-info-light" style="border: none; box-shadow: none;">
-                    <div class="is-flex is-justify-content-space-between mb-1">
-                        <span class="is-size-7 has-text-weight-bold has-text-info-dark is-uppercase">Félév haladása</span>
-                        <span class="is-size-7 has-text-weight-bold has-text-info-dark">${currentWeek}. Hét (${felevSzazalek}%)</span>
-                    </div>
-                    <progress class="progress is-info is-small mb-0" value="${felevSzazalek}" max="100">${felevSzazalek}%</progress>
-                </div>
-
-                <div class="box p-4 mb-4" style="border: 1px solid var(--bulma-border); box-shadow: none;">
-                    <h3 class="title is-6 has-text-grey mb-3">Aktuális Félév</h3>
-                    <div class="is-flex is-justify-content-space-between mb-2">
-                        <span class="has-text-weight-semibold">Vizsgás tárgyak:</span>
-                        <span class="tag is-danger is-light has-text-weight-bold">${vizsgasTargyakSzama} db</span>
-                    </div>
-                    <div class="is-flex is-justify-content-space-between">
-                        <span class="has-text-weight-semibold">Kiírt ZH-k:</span>
-                        <span class="tag is-warning is-light has-text-weight-bold">${aktualisZhkSzama} db</span>
-                    </div>
-                </div>
-
-                <div class="box p-4" style="border: 1px dashed var(--bulma-border); box-shadow: none; background: transparent;">
-                    <div id="sidebar-todo-widget">
-                        <div class="has-text-centered py-3">
-                            <div class="loader is-loading mx-auto"></div>
-                        </div>
-                    </div>
-                </div>
+                
+                
             </div>
         </div>
     `;
-    renderSidebarTodosWidget();
 
-    // 4. Jobb oldali sáv gombjainak eseménykezelői (Modálok megnyitása a UI.js nélkül!)
-    document.getElementById('dash-btn-add-zh')?.addEventListener('click', (e) => { e.preventDefault(); openAddZhModal(); });
-    document.getElementById('dash-btn-add-exam')?.addEventListener('click', (e) => { e.preventDefault(); openAddExamModal(); });
-
-    document.querySelectorAll('.dash-btn-view').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const id = parseInt(e.currentTarget.dataset.id);
-            if (e.currentTarget.dataset.type === 'zh') openViewZhModal(id);
-            else openViewExamModal(id);
-        });
-    });
-
-    document.querySelectorAll('.dash-btn-delete').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const id = parseInt(e.currentTarget.dataset.id);
-            if (e.currentTarget.dataset.type === 'zh') deleteZh(id);
-            else deleteExam(id);
-        });
-    });
-
-    // 5. Teendők betöltése szerverről
+    // Adatok betöltése
     await loadAndRenderTodos();
 
-    // 6. Új feladat mentése
+    // Új feladat mentése
     document.getElementById("add-todo-form").onsubmit = async (e) => {
         e.preventDefault();
-        
         const titleInput = document.getElementById("new-todo-title");
         const dateInput = document.getElementById("new-todo-date");
         const submitBtn = e.target.querySelector('button[type="submit"]');
-        
-        // Gomb letiltása, amíg tölt, hogy ne lehessen kétszer rákattintani
         submitBtn.classList.add('is-loading');
 
         const payload = { 
             title: titleInput.value, 
-            dueDate: dateInput.value ? new Date(dateInput.value).toISOString() : null 
+            dueDate: dateInput.value ? dateInput.value : null 
         };
 
         try {
@@ -168,7 +113,7 @@ export async function renderTodos(container) {
                 titleInput.value = ""; 
                 dateInput.value = ""; 
                 await loadAndRenderTodos(); 
-                renderSidebarTodosWidget();
+                renderSidebarTodosWidget(); // Biztonságosan frissíti a kis widgetet, ha máshol létezik!
             } else {
                 showToast("Hiba a mentés során!", "is-danger");
             }
@@ -181,161 +126,162 @@ export async function renderTodos(container) {
 }
 
 // ==========================================
-// TEENDŐK BETÖLTÉSE (Lista renderelése)
+// DÁTUM FORMÁZÓ SEGÉDFÜGGVÉNY
+// ==========================================
+function formatDateHeader(dateStr) {
+    const [y, m, d] = dateStr.split('-');
+    const dateObj = new Date(y, m - 1, d); 
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    if (dateObj.getTime() === tomorrow.getTime()) return "Holnap";
+    
+    const options = { month: 'long', day: 'numeric', weekday: 'long' };
+    return dateObj.toLocaleDateString('hu-HU', options);
+}
+
+// ==========================================
+// TEENDŐK BETÖLTÉSE (Két oszlopba)
 // ==========================================
 async function loadAndRenderTodos() {
-    const container = document.getElementById("todo-list-container");
-    if (!container) return;
+    const containerToday = document.getElementById("todo-list-today");
+    const containerLater = document.getElementById("todo-list-later");
+    if (!containerToday || !containerLater) return;
+
     try {
         const res = await apiFetch("/todos");
         const todos = await res.json();
 
-        // Frissítjük a jobb oldali számlálót
-        const pendingCount = todos.filter(t => !t.isCompleted).length;
-        const countSpan = document.getElementById("active-todo-count");
-        if(countSpan) countSpan.textContent = pendingCount;
-
-        if (todos.length === 0) {
-            container.innerHTML = `
-                <div class="has-text-centered p-6 mt-4">
-                    <span class="icon is-large has-text-grey-light mb-4" style="font-size: 4rem;"><i class="fa-solid fa-mug-hot"></i></span>
-                    <h3 class="title is-5 has-text-grey">Nincsenek feladataid!</h3>
-                    <p class="has-text-grey-light">Dőlj hátra, igyál egy kávét, vagy adj hozzá egy új teendőt.</p>
-                </div>`;
-            return;
-        }
-
         const pendingTodos = todos.filter(t => !t.isCompleted);
         const completedTodos = todos.filter(t => t.isCompleted);
 
-        let html = '';
-        if (pendingTodos.length > 0) {
-            html += '<div class="list mb-5">';
-            pendingTodos.forEach(todo => { html += generateTodoCard(todo); });
-            html += '</div>';
+        const todayTasks = [];
+        const noDateTasks = [];
+        const upcomingTasksByDate = {}; 
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        // Szétválogatás
+        pendingTodos.forEach(todo => {
+            if (!todo.dueDate) {
+                noDateTasks.push(todo);
+            } else {
+                const due = new Date(todo.dueDate);
+                due.setHours(0, 0, 0, 0);
+
+                if (due < tomorrow) { 
+                    todayTasks.push(todo);
+                } else { 
+                    const y = due.getFullYear();
+                    const m = String(due.getMonth() + 1).padStart(2, '0');
+                    const d = String(due.getDate()).padStart(2, '0');
+                    const localDateStr = `${y}-${m}-${d}`;
+                    
+                    if (!upcomingTasksByDate[localDateStr]) upcomingTasksByDate[localDateStr] = [];
+                    upcomingTasksByDate[localDateStr].push(todo);
+                }
+            }
+        });
+
+        // ------------------------------------------
+        // 1. OSZLOP RENDERELÉSE (MAI FELADATOK)
+        // ------------------------------------------
+        let htmlToday = '';
+        if (todayTasks.length > 0) {
+            htmlToday += `<div class="list">`;
+            todayTasks.forEach(todo => { htmlToday += generateTodoCard(todo); });
+            htmlToday += `</div>`;
+        } else {
+            htmlToday = `
+                <div class="has-text-centered p-5 mt-4" style="border: 2px dashed var(--bulma-border); border-radius: 12px; background-color: var(--bulma-background-light);">
+                    <span class="icon is-large has-text-success mb-3"><i class="fa-solid fa-champagne-glasses fa-2x"></i></span>
+                    <h4 class="title is-6 has-text-grey">Mára mindennel megvagy!</h4>
+                    <p class="is-size-7 has-text-grey-light">Dőlj hátra, vagy csinálj meg valamit előre.</p>
+                </div>
+            `;
+        }
+        containerToday.innerHTML = htmlToday;
+
+        // ------------------------------------------
+        // 2. OSZLOP RENDERELÉSE (KÉSŐBBI / KÉSZ)
+        // ------------------------------------------
+        let htmlLater = '';
+        const sortedUpcomingDates = Object.keys(upcomingTasksByDate).sort();
+
+        if (sortedUpcomingDates.length > 0) {
+            sortedUpcomingDates.forEach(dateStr => {
+                const headerText = formatDateHeader(dateStr);
+                htmlLater += `
+                    <div class="mb-4">
+                        <h4 class="title is-6 mb-2 has-text-grey-dark" style="text-transform: capitalize; font-size: 0.85rem; padding-bottom: 4px; border-bottom: 1px solid var(--bulma-border);">
+                            ${headerText}
+                        </h4>
+                        <div class="list">
+                `;
+                upcomingTasksByDate[dateStr].forEach(todo => { htmlLater += generateTodoCard(todo); });
+                htmlLater += `</div></div>`;
+            });
+        }
+
+        if (noDateTasks.length > 0) {
+            htmlLater += `
+                <div class="mb-4">
+                    <h4 class="title is-6 mb-2 has-text-grey" style="font-size: 0.85rem; padding-bottom: 4px; border-bottom: 1px solid var(--bulma-border);">
+                        Később / Nincs dátum
+                    </h4>
+                    <div class="list">
+            `;
+            noDateTasks.forEach(todo => { htmlLater += generateTodoCard(todo); });
+            htmlLater += `</div></div>`;
         }
 
         if (completedTodos.length > 0) {
-            html += `
-                <div class="is-flex is-align-items-center mb-4 mt-2">
+            htmlLater += `
+                <div class="is-flex is-align-items-center mb-3 mt-5">
                     <hr style="flex-grow: 1; background-color: var(--bulma-border); height: 1px;">
-                    <span class="mx-3 has-text-grey is-size-7 is-uppercase has-text-weight-bold" style="letter-spacing: 1px;">Kész feladatok (${completedTodos.length})</span>
+                    <span class="mx-3 has-text-grey is-size-7 is-uppercase has-text-weight-bold" style="letter-spacing: 1px;">Kész (${completedTodos.length})</span>
                     <hr style="flex-grow: 1; background-color: var(--bulma-border); height: 1px;">
                 </div>
                 <div class="list">
             `;
-            completedTodos.forEach(todo => { html += generateTodoCard(todo); });
-            html += '</div>';
+            completedTodos.forEach(todo => { htmlLater += generateTodoCard(todo); });
+            htmlLater += '</div>';
         }
 
-        container.innerHTML = html;
+        if (!htmlLater) {
+            htmlLater = `<p class="has-text-centered has-text-grey-light is-size-7 mt-5">Nincsenek későbbi feladataid.</p>`;
+        }
+        containerLater.innerHTML = htmlLater;
 
-        // Pipálás esemény
+        // Eseménykezelők bekötése mindkét oszlop gombjaira
         document.querySelectorAll('.todo-checkbox').forEach(cb => cb.addEventListener('change', async (e) => {
             const id = e.target.getAttribute('data-id');
             const card = document.getElementById(`todo-card-${id}`);
             if (card) card.style.opacity = "0.5";
             await apiFetch(`/todos/${id}/toggle`, { method: "PUT" });
             loadAndRenderTodos();
-            renderSidebarTodosWidget();
+            renderSidebarTodosWidget(); // Frissíti a widgetet bárhol máshol
         }));
 
-        // Törlés esemény
         document.querySelectorAll('.todo-delete-btn').forEach(btn => btn.addEventListener('click', async (e) => {
             if (confirm("Biztosan törlöd ezt a feladatot?")) {
                 await apiFetch(`/todos/${e.currentTarget.getAttribute('data-id')}`, { method: "DELETE" });
                 loadAndRenderTodos();
-                renderSidebarTodosWidget();
+                renderSidebarTodosWidget(); 
             }
         }));
     } catch (err) { 
-        container.innerHTML = `<div class="notification is-danger is-light">Hiba a betöltéskor.</div>`; 
-    }
-}
-
-export async function renderSidebarTodosWidget() {
-    const container = document.getElementById("sidebar-todo-widget");
-    if (!container) return;
-
-    try {
-        // apiFetch-et importálni kell!
-        const res = await apiFetch("/todos");
-        if (!res.ok) return;
-        const todos = await res.json();
-        
-        // Csak a nem befejezett feladatok kellenek
-        const pendingTodos = todos.filter(t => !t.isCompleted);
-
-        // Ha nincs feladat
-        if (pendingTodos.length === 0) {
-            container.innerHTML = `
-                <div class="has-text-centered py-3">
-                    <span class="icon is-large has-text-success mb-2"><i class="fa-solid fa-check-double fa-2x"></i></span>
-                    <h3 class="title is-6 has-text-grey mb-1">Napi Teendők</h3>
-                    <p class="is-size-7 has-text-grey">Minden kész, szép munka!</p>
-                </div>
-            `;
-            return;
-        }
-
-        // Ha van feladat, kivesszük a legelső 4-et
-        const topTodos = pendingTodos.slice(0, 4);
-        
-        let html = `
-            <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
-                <h3 class="title is-6 has-text-grey m-0">Napi Teendők</h3>
-                <span class="tag is-info is-light is-rounded has-text-weight-bold">${pendingTodos.length}</span>
-            </div>
-            <div class="is-flex-direction-column" style="gap: 8px; display: flex;">
-        `;
-
-        topTodos.forEach(todo => {
-            html += `
-                <div class="is-flex is-align-items-center p-2" style="background: var(--bulma-background); border-radius: 6px; border: 1px solid var(--bulma-border); transition: all 0.2s ease;">
-                    <label class="checkbox mr-2 is-flex">
-                        <input type="checkbox" class="sidebar-todo-cb" data-id="${todo.id}" style="transform: scale(1.1); cursor: pointer;">
-                    </label>
-                    <span class="is-size-7 has-text-weight-semibold" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--bulma-text-strong);">
-                        ${todo.title}
-                    </span>
-                </div>
-            `;
-        });
-
-        html += `</div>`;
-        
-        // Ha több mint 4 feladat van, mutatunk egy linket
-        if (pendingTodos.length > 4) {
-            html += `<div class="has-text-centered mt-3"><a href="#todos" class="is-size-7 has-text-link has-text-weight-bold">Továbbiak megtekintése...</a></div>`;
-        }
-
-        container.innerHTML = html;
-
-        // Bónusz: Itt az oldalsávból is ki lehessen pipálni a feladatot!
-        document.querySelectorAll('.sidebar-todo-cb').forEach(cb => cb.addEventListener('change', async (e) => {
-            const id = e.target.getAttribute('data-id');
-            // Pipálás küldése a szerverre
-            await apiFetch(`/todos/${id}/toggle`, { method: "PUT" });
-            // Widget újrafrissítése (eltűnik a listából)
-            renderSidebarTodosWidget();
-            
-            // Ha épp a Todos oldalon vagyunk, ott is frissíteni kellene a nagy listát
-            if (window.location.hash === '#todos' || window.location.hash === '') {
-                // Ide betehetsz egy window.refreshSPA() hívást, ha használod!
-                if(window.refreshSPA) window.refreshSPA();
-            }
-            if (document.getElementById("todo-list-container")) {
-                loadAndRenderTodos();
-            }
-        }));
-
-    } catch (e) {
-        container.innerHTML = `<p class="has-text-danger is-size-7">Hiba a betöltéskor.</p>`;
+        containerToday.innerHTML = `<div class="notification is-danger is-light">Hiba a betöltéskor.</div>`; 
+        containerLater.innerHTML = '';
     }
 }
 
 // ==========================================
-// KÁRTYA GENERÁLÁS HTML
+// KÁRTYA GENERÁLÁS HTML (Középső listák)
 // ==========================================
 function generateTodoCard(todo) {
     const isDone = todo.isCompleted;
@@ -378,4 +324,97 @@ function generateTodoCard(todo) {
             </button>
         </div>
     `;
+}
+
+// ==========================================
+// OLDALSÁV (SIDEBAR) WIDGET LOGIKA 
+// (Exportálva, a dashboard.js is innen hívja!)
+// ==========================================
+export async function renderSidebarTodosWidget() {
+    const container = document.getElementById("sidebar-todo-widget");
+    // Biztonsági ellenőrzés: ha nincs ilyen doboz a HTML-ben, egyszerűen kilépünk.
+    if (!container) return;
+
+    try {
+        const res = await apiFetch("/todos");
+        if (!res.ok) return;
+        const todos = await res.json();
+        
+        const pendingTodos = todos.filter(t => !t.isCompleted);
+
+        if (pendingTodos.length === 0) {
+            container.innerHTML = `
+                <div class="has-text-centered py-3">
+                    <span class="icon is-large has-text-success mb-2"><i class="fa-solid fa-check-double fa-2x"></i></span>
+                    <h3 class="title is-6 has-text-grey mb-1">Napi Teendők</h3>
+                    <p class="is-size-7 has-text-grey">Minden kész, szép munka!</p>
+                </div>
+            `;
+            return;
+        }
+
+        const topTodos = pendingTodos.sort((a, b) => {
+            if (!a.dueDate) return 1;
+            if (!b.dueDate) return -1;
+            return new Date(a.dueDate) - new Date(b.dueDate);
+        }).slice(0, 4);
+        
+        let html = `
+            <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+                <h3 class="title is-6 has-text-grey m-0">Napi Teendők</h3>
+                <span class="tag is-info is-light is-rounded has-text-weight-bold">${pendingTodos.length}</span>
+            </div>
+            <div class="is-flex-direction-column" style="gap: 8px; display: flex;">
+        `;
+
+        topTodos.forEach(todo => {
+            const isLate = todo.dueDate && new Date(todo.dueDate).setHours(0,0,0,0) < new Date().setHours(0,0,0,0);
+            const dateStr = todo.dueDate ? new Date(todo.dueDate).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' }) : '';
+            
+            let dateBadge = '';
+            if (dateStr) {
+                if (isLate) dateBadge = `<div class="mt-1"><span class="tag is-danger is-light is-small" style="font-size: 0.65rem; padding: 0 6px;"><i class="fa-solid fa-circle-exclamation mr-1"></i> ${dateStr}</span></div>`;
+                else dateBadge = `<div class="mt-1"><span class="tag is-link is-light is-small" style="font-size: 0.65rem; padding: 0 6px;"><i class="fa-regular fa-calendar mr-1"></i> ${dateStr}</span></div>`;
+            }
+
+            html += `
+                <div class="box is-shadowless p-3 mb-0 is-flex is-align-items-center todo-card" style="background: var(--bulma-background); border-left: 4px solid ${isLate ? 'var(--bulma-danger)' : 'var(--bulma-link)'} !important; min-height: 50px;">
+                    <label class="checkbox mr-3 is-flex is-align-items-center">
+                        <input type="checkbox" class="sidebar-todo-cb todo-checkbox-custom" data-id="${todo.id}">
+                    </label>
+                    <div style="overflow: hidden; flex-grow: 1;">
+                        <span class="is-size-7 has-text-weight-bold" style="display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--bulma-text-strong);">
+                            ${escapeHTML(todo.title)}
+                        </span>
+                        ${dateBadge}
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+        
+        if (pendingTodos.length > 4) {
+            html += `<div class="has-text-centered mt-3"><a href="#todos" class="button is-small is-ghost has-text-link has-text-weight-bold">Továbbiak megtekintése...</a></div>`;
+        }
+
+        container.innerHTML = html;
+
+        document.querySelectorAll('.sidebar-todo-cb').forEach(cb => cb.addEventListener('change', async (e) => {
+            const id = e.target.getAttribute('data-id');
+            const card = e.target.closest('.todo-card');
+            if(card) card.style.opacity = "0.5";
+            
+            await apiFetch(`/todos/${id}/toggle`, { method: "PUT" });
+            
+            renderSidebarTodosWidget();
+            
+            if (document.getElementById("todo-list-today")) {
+                loadAndRenderTodos();
+            }
+        }));
+
+    } catch (e) {
+        container.innerHTML = `<p class="has-text-danger is-size-7">Hiba a betöltéskor.</p>`;
+    }
 }
