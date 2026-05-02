@@ -236,7 +236,7 @@ async function initApp() {
                         ${avatarHtml}
                     </div>
                     <div style="line-height: 1.2; overflow: hidden;">
-                        <p class="has-text-weight-bold is-size-6 mb-0" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--bulma-text-strong);">
+                        <p class="has-text-weight-bold is-size-6 mb-0" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             ${escapeHTML(userProfile.fullName)}
                         </p>
                         <p class="has-text-grey is-size-7 mb-0" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHTML(userProfile.email)}">
