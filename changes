@@ -1,0 +1,2 @@
+ALTER TABLE Users 
+ADD COLUMN FullName VARCHAR(100) DEFAULT 'platZH Diák';

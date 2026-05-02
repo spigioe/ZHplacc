@@ -489,6 +489,57 @@ app.MapGet("/api/settings/fetch-ics", async (ClaimsPrincipal user, IHttpClientFa
     } catch (Exception ex) { return Results.BadRequest($"Hiba: {ex.Message}"); }
 }).RequireAuthorization();
 
+// --- PROFIL LEKÉRÉSE ---
+app.MapGet("/api/auth/me", async (ClaimsPrincipal user) =>
+{
+    int userId = GetUserId(user);
+    using var connection = new MySqlConnection(connectionString);
+    var userData = await connection.QueryFirstOrDefaultAsync(
+        "SELECT id, name, email, profile_picture_url FROM Users WHERE id = @Id", new { Id = userId });
+
+    if (userData == null) return Results.NotFound();
+
+    return Results.Ok(new { 
+        id = userData.id, 
+        email = userData.email, 
+        fullName = userData.name,
+        profilePictureUrl = userData.profile_picture_url
+    });
+}).RequireAuthorization();
+
+app.MapPut("/api/auth/profile", async (ClaimsPrincipal user, UpdateProfileDto dto) =>
+{
+    int userId = GetUserId(user);
+    using var connection = new MySqlConnection(connectionString);
+    
+    // Ha az emailt is változtatja, ellenőrizzük, hogy nem foglalt-e!
+    var emailCheck = await connection.QueryFirstOrDefaultAsync<int>(
+        "SELECT id FROM Users WHERE email = @Email AND id != @Id", new { Email = dto.Email, Id = userId });
+    if (emailCheck > 0) return Results.BadRequest("Ez az email cím már foglalt!");
+
+    var sql = "UPDATE Users SET name = @Name, email = @Email, profile_picture_url = @Pic WHERE id = @Id";
+    await connection.ExecuteAsync(sql, new { Name = dto.Name, Email = dto.Email, Pic = dto.ProfilePictureUrl, Id = userId });
+    
+    return Results.Ok(new { message = "Profil frissítve!" });
+}).RequireAuthorization();
+
+app.MapPut("/api/auth/change-password", async (ClaimsPrincipal user, ChangePasswordDto dto) =>
+{
+    int userId = GetUserId(user);
+    using var connection = new MySqlConnection(connectionString);
+    
+    var currentHash = await connection.QueryFirstOrDefaultAsync<string>(
+        "SELECT password_hash FROM Users WHERE id = @Id", new { Id = userId });
+
+    if (currentHash == null || !BCrypt.Net.BCrypt.Verify(dto.OldPassword, currentHash))
+        return Results.BadRequest("A régi jelszó helytelen!");
+
+    string newHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+    await connection.ExecuteAsync("UPDATE Users SET password_hash = @Hash WHERE id = @Id", new { Hash = newHash, Id = userId });
+    
+    return Results.Ok(new { message = "Jelszó sikeresen megváltoztatva!" });
+}).RequireAuthorization();
+
 // --- TÖRLÉS VÉGPONTOK (MODÁLBÓL) ---
 app.MapDelete("/api/subjects/clear", async (ClaimsPrincipal user) => {
     int userId = GetUserId(user);
@@ -519,11 +570,87 @@ app.MapDelete("/api/exams/clear", async (ClaimsPrincipal user) => {
     return Results.Ok();
 }).RequireAuthorization();
 
+// --- ELFELEJTETT JELSZÓ KÉRÉSE ---
+app.MapPost("/api/auth/forgot-password", async (ForgotPasswordDto dto) =>
+{
+    using var connection = new MySqlConnection(connectionString);
+    
+    // 1. Megkeressük a felhasználót
+    var user = await connection.QueryFirstOrDefaultAsync(
+        "SELECT id, name FROM Users WHERE email = @Email", new { Email = dto.Email });
+
+    // Biztonsági ökölszabály: Ha nem létezik az email, akkor is sikert jelzünk, 
+    // hogy a hackerek ne tudják kitalálni, milyen emailek vannak regisztrálva!
+    if (user == null) 
+    {
+        return Results.Ok(new { message = "Ha az email cím létezik a rendszerben, elküldtük a visszaállító linket." });
+    }
+
+    // 2. Generálunk egy egyedi, 32 karakteres titkos tokent és beállítjuk a lejáratot (1 óra)
+    string resetToken = Guid.NewGuid().ToString("N");
+    DateTime expiry = DateTime.Now.AddHours(1);
+
+    // 3. Elmentjük az adatbázisba
+    var sql = "UPDATE Users SET reset_token = @Token, reset_token_expiry = @Expiry WHERE id = @Id";
+    await connection.ExecuteAsync(sql, new { Token = resetToken, Expiry = expiry, Id = user.id });
+
+    // 4. SZIMULÁLT EMAIL KÜLDÉS A TERMINÁLBA
+    Console.WriteLine("\n=======================================================");
+    Console.WriteLine("✉️ [SZIMULÁLT EMAIL KIKÜLDVE]");
+    Console.WriteLine($"Címzett: {dto.Email}");
+    Console.WriteLine("Tárgy: platZH - Jelszó visszaállítása");
+    Console.WriteLine("-------------------------------------------------------");
+    Console.WriteLine($"Szia {user.name}!");
+    Console.WriteLine("Kaptunk egy kérést a jelszavad visszaállítására.");
+    Console.WriteLine("Az alábbi linkre kattintva (vagy a tokent kimásolva) megadhatod az új jelszavadat:");
+    Console.WriteLine($"Token kód: {resetToken}");
+    Console.WriteLine($"Teszt Link: http://127.0.0.1:5111/index.html?token={resetToken}");
+    Console.WriteLine("Ez a kód 1 óra múlva lejár.");
+    Console.WriteLine("=======================================================\n");
+
+    return Results.Ok(new { message = "Ha az email cím létezik a rendszerben, elküldtük a visszaállító linket." });
+});
+
+// --- ÚJ JELSZÓ BEÁLLÍTÁSA A TOKEN SEGÍTSÉGÉVEL ---
+app.MapPost("/api/auth/reset-password", async (ResetPasswordDto dto) =>
+{
+    using var connection = new MySqlConnection(connectionString);
+    
+    // 1. Ellenőrizzük a tokent és a lejárati időt
+    var user = await connection.QueryFirstOrDefaultAsync(
+        "SELECT id, reset_token_expiry FROM Users WHERE reset_token = @Token", new { Token = dto.Token });
+
+    if (user == null || user.reset_token_expiry < DateTime.Now)
+    {
+        return Results.BadRequest(new { message = "Érvénytelen vagy lejárt visszaállító kód!" });
+    }
+
+    if (dto.NewPassword.Length < 6)
+    {
+        return Results.BadRequest(new { message = "A jelszónak legalább 6 karakternek kell lennie!" });
+    }
+
+    // 2. Új jelszó hashelése
+    string newHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+    
+    // 3. Jelszó frissítése és a token azonnali megsemmisítése (hogy ne lehessen újra felhasználni)
+    var sql = "UPDATE Users SET password_hash = @Hash, reset_token = NULL, reset_token_expiry = NULL WHERE id = @Id";
+    await connection.ExecuteAsync(sql, new { Hash = newHash, Id = user.id });
+
+    return Results.Ok(new { message = "Sikeres jelszóváltoztatás! Most már bejelentkezhetsz az új jelszavaddal." });
+});
+
+
 app.Run();
 
 // ================================================================================
 // 5. MODELLEK
 // ================================================================================
+
+public class UpdateProfileDto { public string Name { get; set; } = ""; public string Email { get; set; } = ""; public string? ProfilePictureUrl { get; set; } }
+public class ChangePasswordDto { public string OldPassword { get; set; } = ""; public string NewPassword { get; set; } = ""; }
+public class ForgotPasswordDto { public string Email { get; set; } = ""; }
+public class ResetPasswordDto { public string Token { get; set; } = ""; public string NewPassword { get; set; } = ""; }
 
 public class UserRegisterDto { public string Name { get; set; } = ""; public string Email { get; set; } = ""; public string Password { get; set; } = ""; }
 public class UserLoginDto { public string Email { get; set; } = ""; public string Password { get; set; } = ""; }

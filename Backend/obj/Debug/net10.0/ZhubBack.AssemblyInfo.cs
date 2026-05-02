@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ZhubBack")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1488b13679086e7a6e94374aca563902a3f165b3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9c835a20a76eee0e033c6c9568ae72c8351c50c2")]
 [assembly: System.Reflection.AssemblyProductAttribute("ZhubBack")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ZhubBack")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

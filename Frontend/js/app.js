@@ -14,7 +14,7 @@ import { renderSubjects } from './pages/subjects.js';
 import { renderAssessments } from './pages/assessments.js';
 
 // API és Rendszer
-import { logout } from './api.js';
+import { logout, fetchUserProfile, escapeHTML} from './api.js';
 import { 
     startNeptunSync, 
     initThemeToggle, 
@@ -63,7 +63,6 @@ import {
     submitExam, 
     closeViewExamModal 
 } from './exams.js';
-
 
 // ==========================================
 // 2. ROUTING (SPA NAVIGÁCIÓ)
@@ -215,6 +214,45 @@ async function initApp() {
         setupGlobalEventListeners();
         
         await fetchSettings();
+
+        // --- FELHASZNÁLÓI PROFIL BETÖLTÉSE ---
+        const userProfile = await fetchUserProfile();
+        if (userProfile) {
+            const profileCard = document.querySelector('.user-profile-card');
+            if (profileCard) {
+                // Generálunk egy monogramot (Pl: "Kiss Péter" -> "KP")
+                const initials = userProfile.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'ZH';
+                
+                // ÚJ: Profilkép HTML generálása (Kép vagy Monogram)
+                let avatarHtml = '';
+                if (userProfile.profilePictureUrl && userProfile.profilePictureUrl.length > 50) {
+                    avatarHtml = `<img src="${userProfile.profilePictureUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                } else {
+                    avatarHtml = initials; // Csak a betűk
+                }
+                
+                profileCard.innerHTML = `
+                    <div style="width: 40px; height: 40px; background-color: var(--bulma-link); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0; overflow: hidden; border: 2px solid white;">
+                        ${avatarHtml}
+                    </div>
+                    <div style="line-height: 1.2; overflow: hidden;">
+                        <p class="has-text-weight-bold is-size-6 mb-0" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--bulma-text-strong);">
+                            ${escapeHTML(userProfile.fullName)}
+                        </p>
+                        <p class="has-text-grey is-size-7 mb-0" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHTML(userProfile.email)}">
+                            ${escapeHTML(userProfile.email)}
+                        </p>
+                    </div>
+                    <div class="ml-auto">
+                        <button class="button is-small is-ghost has-text-danger p-0" id="logout-btn" title="Kijelentkezés">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+                `;
+                document.getElementById("logout-btn")?.addEventListener("click", logout);
+            }
+        }
+        // -------------------------------------
         
         // SZIGORÚ BETÖLTÉSI SORREND
         await fetchOrarend();      
@@ -230,7 +268,6 @@ async function initApp() {
         console.error("Kritikus hiba az induláskor:", e);
     }
 }
-
 // ==========================================
 // GLOBÁLIS MODÁL BEZÁRÁS (Kattintás a háttérre)
 // ==========================================
