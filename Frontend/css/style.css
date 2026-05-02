@@ -17,6 +17,8 @@ body {
     height: 100vh;
     background-color: var(--bg-color);
     overflow: hidden; /* A főoldal nem görgethető, csak a belső panelek! */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 .app-layout {
