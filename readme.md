@@ -1,7 +1,6 @@
 # 🎓 platZH – Az egyetemi túlélőkészlet
 
-[![Version](https://img.shields.io/badge/version-0.8.3--beta-blue)](https://github.com/felhasznalonev/platzh)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.9--beta-blue)](https://github.com/spigioe/ZHplacc)
 [![Platform](https://img.shields.io/badge/platform-PWA%20%7C%20Web-orange)](https://platzh.hu)
 
 A **platZH** egy modern, reszponzív és felhasználóbarát webalkalmazás, amelyet kifejezetten egyetemi hallgatók számára lett tervezve. Segít rendszerezni az órarendet, nyomon követni a számonkéréseket és kezelni a napi teendőket, hogy soha ne maradj le semmiről. Meg már amúgy elegem van hogy nem tudom mi mikor van, az is volt a cél vele hogy erre megoldást találjak, csak kicsit túlnőtte magát a projekt.
