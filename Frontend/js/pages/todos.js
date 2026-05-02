@@ -110,10 +110,10 @@ export async function renderTodos(container) {
                 </div>
 
                 <div class="box p-4" style="border: 1px dashed var(--bulma-border); box-shadow: none; background: transparent;">
-                    <div class="has-text-centered py-3">
-                        <span class="icon is-large has-text-grey-light mb-2"><i class="fa-solid fa-list-check fa-2x"></i></span>
-                        <h3 class="title is-6 has-text-grey mb-1">Napi Teendők</h3>
-                        <p class="is-size-7 has-text-grey">Hamarosan érkezik...</p>
+                    <div id="sidebar-todo-widget">
+                        <div class="has-text-centered py-3">
+                            <div class="loader is-loading mx-auto"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -234,6 +234,84 @@ async function loadAndRenderTodos() {
         }));
     } catch (err) { 
         container.innerHTML = `<div class="notification is-danger is-light">Hiba a betöltéskor.</div>`; 
+    }
+}
+
+export async function renderSidebarTodosWidget() {
+    const container = document.getElementById("sidebar-todo-widget");
+    if (!container) return;
+
+    try {
+        // apiFetch-et importálni kell!
+        const res = await apiFetch("/todos");
+        if (!res.ok) return;
+        const todos = await res.json();
+        
+        // Csak a nem befejezett feladatok kellenek
+        const pendingTodos = todos.filter(t => !t.isCompleted);
+
+        // Ha nincs feladat
+        if (pendingTodos.length === 0) {
+            container.innerHTML = `
+                <div class="has-text-centered py-3">
+                    <span class="icon is-large has-text-success mb-2"><i class="fa-solid fa-check-double fa-2x"></i></span>
+                    <h3 class="title is-6 has-text-grey mb-1">Napi Teendők</h3>
+                    <p class="is-size-7 has-text-grey">Minden kész, szép munka!</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Ha van feladat, kivesszük a legelső 4-et
+        const topTodos = pendingTodos.slice(0, 4);
+        
+        let html = `
+            <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+                <h3 class="title is-6 has-text-grey m-0">Napi Teendők</h3>
+                <span class="tag is-info is-light is-rounded has-text-weight-bold">${pendingTodos.length}</span>
+            </div>
+            <div class="is-flex-direction-column" style="gap: 8px; display: flex;">
+        `;
+
+        topTodos.forEach(todo => {
+            html += `
+                <div class="is-flex is-align-items-center p-2" style="background: var(--bulma-background); border-radius: 6px; border: 1px solid var(--bulma-border); transition: all 0.2s ease;">
+                    <label class="checkbox mr-2 is-flex">
+                        <input type="checkbox" class="sidebar-todo-cb" data-id="${todo.id}" style="transform: scale(1.1); cursor: pointer;">
+                    </label>
+                    <span class="is-size-7 has-text-weight-semibold" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--bulma-text-strong);">
+                        ${todo.title}
+                    </span>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+        
+        // Ha több mint 4 feladat van, mutatunk egy linket
+        if (pendingTodos.length > 4) {
+            html += `<div class="has-text-centered mt-3"><a href="#todos" class="is-size-7 has-text-link has-text-weight-bold">Továbbiak megtekintése...</a></div>`;
+        }
+
+        container.innerHTML = html;
+
+        // Bónusz: Itt az oldalsávból is ki lehessen pipálni a feladatot!
+        document.querySelectorAll('.sidebar-todo-cb').forEach(cb => cb.addEventListener('change', async (e) => {
+            const id = e.target.getAttribute('data-id');
+            // Pipálás küldése a szerverre
+            await apiFetch(`/todos/${id}/toggle`, { method: "PUT" });
+            // Widget újrafrissítése (eltűnik a listából)
+            renderSidebarTodosWidget();
+            
+            // Ha épp a Todos oldalon vagyunk, ott is frissíteni kellene a nagy listát
+            if (window.location.hash === '#todos' || window.location.hash === '') {
+                // Ide betehetsz egy window.refreshSPA() hívást, ha használod!
+                if(window.refreshSPA) window.refreshSPA();
+            }
+        }));
+
+    } catch (e) {
+        container.innerHTML = `<p class="has-text-danger is-size-7">Hiba a betöltéskor.</p>`;
     }
 }
 
