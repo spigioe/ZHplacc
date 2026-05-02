@@ -3,221 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>platZH</title>
+    <title>platZH | Bejelentkezés</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
-    <link rel="stylesheet" href="css/index.css">
-    <!-- Esetleges ikonokhoz (ha eddig is használtál fontawesome-ot) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/index.css">
 
     <script>
         const savedTheme = localStorage.getItem("zhub-theme") || "light";
         document.documentElement.setAttribute("data-theme", savedTheme);
     </script>
-
-    <style>
-        /* Hogy finoman, animálva ússzanak be a kártyák */
-        .auth-card {
-            display: none;
-            animation: fadeIn 0.3s ease-out forwards;
-        }
-        .auth-card.is-active {
-            display: block;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
 </head>
 <body>
 
-    <button class="button is-small theme-toggle-btn" id="login-theme-toggle" style="position: absolute; top: 15px; right: 15px;">
-        🌙 Sötét mód
+    <button class="button is-small is-rounded theme-toggle-btn" id="login-theme-toggle">
+        <span class="icon is-small"><i class="fa-solid fa-moon"></i></span>
+        <span>Sötét mód</span>
     </button>
 
-    <section class="hero is-fullheight login-hero">
-        <div class="hero-body pt-0 pb-0">
-            <div class="container is-centered">
-                <div class="columns is-centered">
-                    <div class="column is-4-desktop is-6-tablet is-11-mobile">
-                        
-                        <!-- ============================================== -->
-                        <!-- 1. BEJELENTKEZÉS KÁRTYA -->
-                        <!-- ============================================== -->
-                        <div class="login-card has-text-centered auth-card is-active" id="card-login">
-                            <div class="zhub-logo mb-2" style="font-size: 3rem;">🎓</div>
-                            <h1 class="title is-3 has-text-link mt-2 mb-2">platZH</h1>
-                            <p class="subtitle is-6 has-text-grey mb-5">Csak azért hogy ne vessz el</p>
-                            
-                            <hr style="background-color: var(--bulma-border); height: 1px; margin: 1.5rem 0;">
-
-                            <form id="login-form"> 
-                                <div id="login-error-msg" class="notification is-danger is-light is-hidden is-size-7 p-2 mb-4"></div>
-                                <div id="login-success-msg" class="notification is-success is-light is-hidden is-size-7 p-2 mb-4"></div>
-
-                                <div class="field">
-                                    <label class="label has-text-grey has-text-left">E-mail cím</label>
-                                    <div class="control has-icons-left">
-                                        <input class="input" type="email" id="login-email" placeholder="pelda@uni-obuda.hu" required>
-                                        <span class="icon is-small is-left"><i class="fa-solid fa-envelope"></i></span>
-                                    </div>
-                                </div>
-
-                                <div class="field">
-                                    <div class="is-flex is-justify-content-space-between">
-                                        <label class="label has-text-grey">Jelszó</label>
-                                        <a href="#" class="is-size-7 has-text-link" id="link-to-forgot">Elfelejtetted?</a>
-                                    </div>
-                                    <div class="control has-icons-left">
-                                        <input class="input" type="password" id="login-password" placeholder="••••••••" required>
-                                        <span class="icon is-small is-left"><i class="fa-solid fa-lock"></i></span>
-                                    </div>
-                                </div>
-
-                                <button type="submit" class="button is-link is-fullwidth is-medium mt-5" id="login-btn">
-                                    <strong>Bejelentkezés</strong>
-                                </button>
-                            </form>
-
-                            <div class="mt-5 is-size-7">
-                                <p class="has-text-grey">Nincs még fiókod? <a href="#" id="link-to-register" class="has-text-link has-text-weight-bold">Regisztrálj itt!</a></p>
-                            </div>
-                        </div>
-
-                        <!-- ============================================== -->
-                        <!-- 2. REGISZTRÁCIÓ KÁRTYA -->
-                        <!-- ============================================== -->
-                        <div class="login-card has-text-centered auth-card" id="card-register">
-                            <div class="zhub-logo mb-2" style="font-size: 3rem;">🚀</div>
-                            <h1 class="title is-3 has-text-link mt-2 mb-2">Új Fiók</h1>
-                            <p class="subtitle is-6 has-text-grey mb-4">Gyere inni tesó, ráérnek a zh-k.</p>
-                            
-                            <hr style="background-color: var(--bulma-border); height: 1px; margin: 1.5rem 0;">
-
-                            <form id="register-form">
-                                <div id="reg-error-msg" class="notification is-danger is-light is-hidden is-size-7 p-2 mb-4"></div>
-
-                                <div class="field has-text-left">
-                                    <label class="label is-small has-text-grey">Teljes név</label>
-                                    <div class="control has-icons-left">
-                                        <input class="input" type="text" id="reg-name" placeholder="Pl.: Neumann János" required>
-                                        <span class="icon is-small is-left"><i class="fa-solid fa-user"></i></span>
-                                    </div>
-                                </div>
-
-                                <div class="field has-text-left">
-                                    <label class="label is-small has-text-grey">E-mail cím</label>
-                                    <div class="control has-icons-left">
-                                        <input class="input" type="email" id="reg-email" placeholder="pelda@uni-obuda.hu" required>
-                                        <span class="icon is-small is-left"><i class="fa-solid fa-envelope"></i></span>
-                                    </div>
-                                </div>
-
-                                <div class="columns is-mobile mb-0">
-                                    <div class="column is-half field has-text-left mb-3">
-                                        <label class="label is-small has-text-grey">Jelszó</label>
-                                        <div class="control has-icons-left">
-                                            <input class="input" type="password" id="reg-password" placeholder="••••••••" required minlength="6">
-                                            <span class="icon is-small is-left"><i class="fa-solid fa-lock"></i></span>
-                                        </div>
-                                    </div>
-                                    <div class="column is-half field has-text-left mb-3">
-                                        <label class="label is-small has-text-grey">Jelszó újra</label>
-                                        <div class="control has-icons-left">
-                                            <input class="input" type="password" id="reg-password-confirm" placeholder="••••••••" required minlength="6">
-                                            <span class="icon is-small is-left"><i class="fa-solid fa-check-double"></i></span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <button type="submit" class="button is-link is-fullwidth is-medium mt-4" id="register-btn">
-                                    <strong>Regisztráció</strong>
-                                </button>
-                            </form>
-
-                            <div class="mt-5 is-size-7">
-                                <p class="has-text-grey">Már van fiókod? <a href="#" id="link-to-login-from-reg" class="has-text-link has-text-weight-bold">Jelentkezz be!</a></p>
-                            </div>
-                        </div>
-
-                        <!-- ============================================== -->
-                        <!-- 3. ELFELEJTETT JELSZÓ KÁRTYA (TOKEN KÉRÉS) -->
-                        <!-- ============================================== -->
-                        <div class="login-card has-text-centered auth-card" id="card-forgot">
-                            <div class="zhub-logo mb-2" style="font-size: 3rem;">🔑</div>
-                            <h1 class="title is-4 has-text-link mt-2 mb-2">Elfelejtett jelszó</h1>
-                            <p class="subtitle is-6 has-text-grey mb-4">Add meg az e-mail címed, és küldünk egy linket a visszaállításhoz.</p>
-                            
-                            <hr style="background-color: var(--bulma-border); height: 1px; margin: 1.5rem 0;">
-
-                            <form id="forgot-form"> 
-                                <div id="forgot-msg" class="notification is-light is-hidden is-size-7 p-2 mb-4"></div>
-
-                                <div class="field">
-                                    <label class="label has-text-grey has-text-left">E-mail cím</label>
-                                    <div class="control has-icons-left">
-                                        <input class="input" type="email" id="forgot-email" placeholder="pelda@uni-obuda.hu" required>
-                                        <span class="icon is-small is-left"><i class="fa-solid fa-envelope"></i></span>
-                                    </div>
-                                </div>
-
-                                <button type="submit" class="button is-link is-fullwidth is-medium mt-5" id="forgot-btn">
-                                    <strong>Link küldése</strong>
-                                </button>
-                            </form>
-
-                            <div class="mt-5 is-size-7">
-                                <a href="#" id="link-to-login-from-forgot" class="has-text-grey has-text-weight-bold"><i class="fa-solid fa-arrow-left mr-1"></i> Vissza a bejelentkezéshez</a>
-                            </div>
-                        </div>
-
-                        <!-- ============================================== -->
-                        <!-- 4. ÚJ JELSZÓ MEGADÁSA KÁRTYA (URL TOKENNÉL) -->
-                        <!-- ============================================== -->
-                        <div class="login-card has-text-centered auth-card" id="card-reset">
-                            <div class="zhub-logo mb-2" style="font-size: 3rem;">🔐</div>
-                            <h1 class="title is-4 has-text-danger mt-2 mb-2">Új jelszó megadása</h1>
-                            <p class="subtitle is-6 has-text-grey mb-4">Adj meg egy erős, új jelszót a fiókodhoz!</p>
-                            
-                            <hr style="background-color: var(--bulma-border); height: 1px; margin: 1.5rem 0;">
-
-                            <form id="reset-form"> 
-                                <div id="reset-error-msg" class="notification is-danger is-light is-hidden is-size-7 p-2 mb-4"></div>
-
-                                <!-- Rejtett input a tokennek, amit az URL-ből szedünk ki -->
-                                <input type="hidden" id="reset-token">
-
-                                <div class="field">
-                                    <label class="label has-text-grey has-text-left">Új jelszó</label>
-                                    <div class="control has-icons-left">
-                                        <input class="input" type="password" id="reset-password" placeholder="Legalább 6 karakter" required minlength="6">
-                                        <span class="icon is-small is-left"><i class="fa-solid fa-lock"></i></span>
-                                    </div>
-                                </div>
-
-                                <div class="field">
-                                    <label class="label has-text-grey has-text-left">Új jelszó újra</label>
-                                    <div class="control has-icons-left">
-                                        <input class="input" type="password" id="reset-password-confirm" placeholder="••••••••" required minlength="6">
-                                        <span class="icon is-small is-left"><i class="fa-solid fa-check-double"></i></span>
-                                    </div>
-                                </div>
-
-                                <button type="submit" class="button is-danger is-fullwidth is-medium mt-5" id="reset-btn">
-                                    <strong>Jelszó Mentése</strong>
-                                </button>
-                            </form>
-                            
-                            <div class="mt-5 is-size-7">
-                                <a href="index.html" class="has-text-grey has-text-weight-bold">Mégse, vissza a bejelentkezéshez</a>
-                            </div>
-                        </div>
-
+    <div class="auth-layout">
+        
+        <!-- ============================================== -->
+        <!-- BAL OLDAL: MÁRKA ÉS GRAFIKA (Side Panel) -->
+        <!-- ============================================== -->
+        <div class="auth-side-panel">
+            <div class="auth-brand">
+                <h1 class="title is-2 has-text-white mb-2">plat<span class="has-text-link">ZH</span>.</h1>
+                <p class="subtitle is-5 has-text-grey-light">A modern egyetemi asszisztensed.</p>
+            </div>
+            
+            <div class="auth-features">
+                <div class="auth-feature-item">
+                    <div class="auth-feature-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                    <div>
+                        <h4 class="has-text-white has-text-weight-bold">Órarend integráció</h4>
+                        <p class="has-text-grey-light is-size-7">Szinkronizáld Neptun naptáradat másodpercek alatt.</p>
+                    </div>
+                </div>
+                <div class="auth-feature-item">
+                    <div class="auth-feature-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <div>
+                        <h4 class="has-text-white has-text-weight-bold">Számonkérések</h4>
+                        <p class="has-text-grey-light is-size-7">Soha többé nem maradsz le egy ZH-ról vagy vizsgáról sem.</p>
+                    </div>
+                </div>
+                <div class="auth-feature-item">
+                    <div class="auth-feature-icon"><i class="fa-solid fa-list-check"></i></div>
+                    <div>
+                        <h4 class="has-text-white has-text-weight-bold">Napi teendők</h4>
+                        <p class="has-text-grey-light is-size-7">Tervezd meg a napjaidat és maradj fókuszban.</p>
                     </div>
                 </div>
             </div>
+            
+            <div class="auth-footer has-text-grey">
+                <p>&copy; 2024 platZH. Készült a túlélésért.</p>
+            </div>
         </div>
-    </section>
+
+        <!-- ============================================== -->
+        <!-- JOBB OLDAL: BEJELENTKEZÉS KÁRTYÁK -->
+        <!-- ============================================== -->
+        <div class="auth-main-panel">
+            <div class="auth-card-container">
+                
+                <!-- 1. BEJELENTKEZÉS KÁRTYA -->
+                <div class="login-card auth-card is-active" id="card-login">
+                    <div class="has-text-centered mb-5">
+                        <div class="zhub-logo mb-2">🎓</div>
+                        <h2 class="title is-3 mt-2 mb-1">Üdv újra!</h2>
+                        <p class="subtitle is-6 has-text-grey">Lépj be a fiókodba a folytatáshoz</p>
+                    </div>
+
+                    <form id="login-form"> 
+                        <div id="login-error-msg" class="notification is-danger is-light is-hidden is-size-7 p-3 mb-4"></div>
+                        <div id="login-success-msg" class="notification is-success is-light is-hidden is-size-7 p-3 mb-4"></div>
+
+                        <div class="field">
+                            <label class="label has-text-grey">E-mail cím</label>
+                            <div class="control has-icons-left">
+                                <input class="input is-medium" type="email" id="login-email" placeholder="pelda@uni-obuda.hu" required>
+                                <span class="icon is-left"><i class="fa-solid fa-envelope"></i></span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <div class="is-flex is-justify-content-space-between is-align-items-center mb-1">
+                                <label class="label has-text-grey mb-0">Jelszó</label>
+                                <a href="#" class="is-size-7 has-text-link has-text-weight-semibold" id="link-to-forgot">Elfelejtetted?</a>
+                            </div>
+                            <div class="control has-icons-left">
+                                <input class="input is-medium" type="password" id="login-password" placeholder="••••••••" required>
+                                <span class="icon is-left"><i class="fa-solid fa-lock"></i></span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="button is-link is-fullwidth is-medium mt-5 has-text-weight-bold" id="login-btn">
+                            Bejelentkezés
+                        </button>
+                    </form>
+
+                    <div class="has-text-centered mt-5 pt-4" style="border-top: 1px solid var(--bulma-border);">
+                        <p class="has-text-grey is-size-6">Nincs még fiókod? <a href="#" id="link-to-register" class="has-text-link has-text-weight-bold">Regisztrálj itt!</a></p>
+                    </div>
+                </div>
+
+                <!-- 2. REGISZTRÁCIÓ KÁRTYA -->
+                <div class="login-card auth-card" id="card-register">
+                    <div class="has-text-centered mb-5">
+                        <div class="zhub-logo mb-2">🚀</div>
+                        <h2 class="title is-3 mt-2 mb-1">Új Fiók</h2>
+                        <p class="subtitle is-6 has-text-grey">Regisztrálj másodpercek alatt.</p>
+                    </div>
+
+                    <form id="register-form">
+                        <div id="reg-error-msg" class="notification is-danger is-light is-hidden is-size-7 p-3 mb-4"></div>
+
+                        <div class="field">
+                            <label class="label has-text-grey">Teljes név</label>
+                            <div class="control has-icons-left">
+                                <input class="input" type="text" id="reg-name" placeholder="Pl.: Neumann János" required>
+                                <span class="icon is-left"><i class="fa-solid fa-user"></i></span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label has-text-grey">E-mail cím</label>
+                            <div class="control has-icons-left">
+                                <input class="input" type="email" id="reg-email" placeholder="pelda@uni-obuda.hu" required>
+                                <span class="icon is-left"><i class="fa-solid fa-envelope"></i></span>
+                            </div>
+                        </div>
+
+                        <div class="columns is-mobile mb-0">
+                            <div class="column is-half field mb-3">
+                                <label class="label has-text-grey">Jelszó</label>
+                                <div class="control has-icons-left">
+                                    <input class="input" type="password" id="reg-password" placeholder="••••••••" required minlength="6">
+                                    <span class="icon is-left"><i class="fa-solid fa-lock"></i></span>
+                                </div>
+                            </div>
+                            <div class="column is-half field mb-3">
+                                <label class="label has-text-grey">Jelszó újra</label>
+                                <div class="control has-icons-left">
+                                    <input class="input" type="password" id="reg-password-confirm" placeholder="••••••••" required minlength="6">
+                                    <span class="icon is-left"><i class="fa-solid fa-check-double"></i></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="button is-link is-fullwidth is-medium mt-4 has-text-weight-bold" id="register-btn">
+                            Regisztráció
+                        </button>
+                    </form>
+
+                    <div class="has-text-centered mt-5 pt-4" style="border-top: 1px solid var(--bulma-border);">
+                        <p class="has-text-grey is-size-6">Már van fiókod? <a href="#" id="link-to-login-from-reg" class="has-text-link has-text-weight-bold">Jelentkezz be!</a></p>
+                    </div>
+                </div>
+
+                <!-- 3. ELFELEJTETT JELSZÓ KÁRTYA -->
+                <div class="login-card auth-card" id="card-forgot">
+                    <div class="has-text-centered mb-5">
+                        <div class="zhub-logo mb-2">🔑</div>
+                        <h2 class="title is-4 mt-2 mb-1">Elfelejtett jelszó</h2>
+                        <p class="subtitle is-6 has-text-grey">Add meg az e-mail címed, és küldünk egy linket a visszaállításhoz.</p>
+                    </div>
+
+                    <form id="forgot-form"> 
+                        <div id="forgot-msg" class="notification is-light is-hidden is-size-7 p-3 mb-4"></div>
+
+                        <div class="field">
+                            <label class="label has-text-grey">E-mail cím</label>
+                            <div class="control has-icons-left">
+                                <input class="input is-medium" type="email" id="forgot-email" placeholder="pelda@uni-obuda.hu" required>
+                                <span class="icon is-left"><i class="fa-solid fa-envelope"></i></span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="button is-link is-fullwidth is-medium mt-5 has-text-weight-bold" id="forgot-btn">
+                            Link küldése
+                        </button>
+                    </form>
+
+                    <div class="has-text-centered mt-5 pt-4" style="border-top: 1px solid var(--bulma-border);">
+                        <a href="#" id="link-to-login-from-forgot" class="has-text-grey has-text-weight-bold is-size-6"><i class="fa-solid fa-arrow-left mr-2"></i>Vissza a bejelentkezéshez</a>
+                    </div>
+                </div>
+
+                <!-- 4. ÚJ JELSZÓ MEGADÁSA KÁRTYA -->
+                <div class="login-card auth-card" id="card-reset">
+                    <div class="has-text-centered mb-5">
+                        <div class="zhub-logo mb-2">🔐</div>
+                        <h2 class="title is-4 has-text-danger mt-2 mb-1">Új jelszó</h2>
+                        <p class="subtitle is-6 has-text-grey">Adj meg egy erős, új jelszót a fiókodhoz!</p>
+                    </div>
+
+                    <form id="reset-form"> 
+                        <div id="reset-error-msg" class="notification is-danger is-light is-hidden is-size-7 p-3 mb-4"></div>
+                        <input type="hidden" id="reset-token">
+
+                        <div class="field">
+                            <label class="label has-text-grey">Új jelszó</label>
+                            <div class="control has-icons-left">
+                                <input class="input is-medium" type="password" id="reset-password" placeholder="Legalább 6 karakter" required minlength="6">
+                                <span class="icon is-left"><i class="fa-solid fa-lock"></i></span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label has-text-grey">Új jelszó újra</label>
+                            <div class="control has-icons-left">
+                                <input class="input is-medium" type="password" id="reset-password-confirm" placeholder="••••••••" required minlength="6">
+                                <span class="icon is-left"><i class="fa-solid fa-check-double"></i></span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="button is-danger is-fullwidth is-medium mt-5 has-text-weight-bold" id="reset-btn">
+                            Jelszó Mentése
+                        </button>
+                    </form>
+                    
+                    <div class="has-text-centered mt-5 pt-4" style="border-top: 1px solid var(--bulma-border);">
+                        <a href="index.html" class="has-text-grey has-text-weight-bold is-size-6">Mégse, vissza a kezdőlapra</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
     
     <script type="module" src="js/core/auth.js"></script>
 </body>

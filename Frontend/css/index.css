@@ -1,29 +1,262 @@
-.login-hero {
-            background: linear-gradient(135deg, var(--bulma-scheme-main-bis) 0%, var(--bulma-link-light) 100%);
-            transition: background 0.3s ease;
-        }
-        
-[data-theme="dark"] .login-hero {
-    background: linear-gradient(135deg, var(--bulma-scheme-dark) 0%, #1a1a24 100%);
+/* ==========================================================================
+   ALAPOK ÉS ELRENDEZÉS (SPLIT SCREEN LAYOUT)
+   ========================================================================== */
+:root {
+    --auth-bg-color: #f8fafc;
+    --auth-panel-bg: #0f172a; /* Dashboard Sidebar színe */
+    --auth-border: #e2e8f0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    background-color: var(--auth-bg-color);
+    overflow: hidden;
+    display: flex;
+}
+
+.auth-layout {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* --- BAL OLDALI SÁV (BRANDING) --- */
+.auth-side-panel {
+    width: 450px;
+    background-color: var(--auth-panel-bg);
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-shrink: 0;
+    z-index: 10;
+    box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+}
+
+.auth-brand .title {
+    font-size: 3rem;
+    font-weight: 800;
+}
+
+.auth-features {
+    margin-top: 3rem;
+    margin-bottom: auto;
+}
+
+.auth-feature-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 15px;
+}
+
+.auth-feature-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background-color: rgba(59, 130, 246, 0.1); /* Halvány kék */
+    color: #3b82f6; /* Kék ikon */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+/* --- JOBB OLDAL (FORM) --- */
+.auth-main-panel {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.auth-card-container {
+    width: 100%;
+    max-width: 420px; /* Szűk, elegáns oszlop az inputoknak */
+    position: relative;
+}
+
+/* ==========================================================================
+   KÁRTYÁK ÉS ANIMÁCIÓK
+   ========================================================================== */
+
+.auth-card {
+    display: none; /* Alapból minden rejtett */
+    opacity: 0;
+    transform: translateY(15px);
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.auth-card.is-active {
+    display: block;
+    animation: authFadeIn 0.4s ease-out forwards;
+}
+
+@keyframes authFadeIn {
+    0% { opacity: 0; transform: translateY(15px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
 
 .login-card {
-    border-radius: 16px;
-    /* A fix 'white' helyett a Bulma dinamikus változóját használjuk! */
-    background-color: var(--bulma-box-background-color); 
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-    padding: 2rem;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    background-color: transparent; /* Asztalon nem kell fehér doboz, beleolvad a háttérbe! */
+    width: 100%;
 }
 
 .zhub-logo {
     font-size: 3.5rem;
-    margin-bottom: -10px;
 }
 
+/* Inputok prémiumosítása */
+.login-card .input {
+    background-color: #ffffff;
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.login-card .input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Gomb pozíció (Sötét mód) */
 .theme-toggle-btn {
-    position: absolute;
+    position: fixed;
     top: 20px;
     right: 20px;
-    border-radius: 50px;
+    z-index: 100;
+    background-color: #ffffff;
+    border: 1px solid var(--auth-border);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+/* ==========================================================================
+   SÖTÉT MÓD (DARK THEME)
+   ========================================================================== */
+html[data-theme="dark"] {
+    --auth-bg-color: #0f0f11;
+    --auth-panel-bg: #18181b;
+    --auth-border: #3f3f46;
+}
+
+html[data-theme="dark"] body {
+    background-color: var(--auth-bg-color);
+}
+
+html[data-theme="dark"] .auth-side-panel {
+    border-right: 1px solid var(--auth-border);
+    box-shadow: none;
+}
+
+html[data-theme="dark"] .login-card .title, 
+html[data-theme="dark"] .login-card .label {
+    color: #e4e4e7;
+}
+
+html[data-theme="dark"] .login-card .input {
+    background-color: #27272a;
+    border-color: var(--auth-border);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .theme-toggle-btn {
+    background-color: #27272a;
+    color: #e4e4e7;
+    border-color: var(--auth-border);
+}
+
+/* ==========================================================================
+   RESZPONZÍV DIZÁJN (MOBIL / TABLET)
+   ========================================================================== */
+@media (max-width: 768px) {
+    
+    /* 1. Alap elrendezés: Egymás alá törjük a két oldalt */
+    .auth-layout {
+        flex-direction: column;
+        overflow-y: auto; /* Mobilon lehessen görgetni, ha nem fér ki valami */
+        height: auto;
+        min-height: 100vh;
+    }
+
+    /* 2. BAL SÁV (Fejléccé válik) */
+    .auth-side-panel {
+        width: 100%;
+        height: auto;
+        padding: 2rem 1.5rem;
+        box-shadow: none;
+        align-items: center;
+        text-align: center;
+    }
+
+    /* Mobilon kisebb logó */
+    .auth-brand .title {
+        font-size: 2.5rem;
+    }
+
+    /* A 3 leíró ikont és a footert elrejtjük mobilon a helyspórolás végett */
+    .auth-features,
+    .auth-footer {
+        display: none !important;
+    }
+
+    /* 3. JOBB SÁV (Form konténer) */
+    .auth-main-panel {
+        padding: 1.5rem;
+        align-items: flex-start; /* Ne középre húzza, hanem felülre a fejléc alá */
+        overflow-y: visible; /* A külső konténer görget */
+    }
+
+    .auth-card-container {
+        max-width: 100%; /* Kitölti a mobil képernyő szélességét */
+    }
+
+    /* 4. A Kártya kinézete mobilon */
+    .login-card {
+        background-color: #ffffff; /* Mobilon kapjon fehér dobozt, hogy elüssön a szürke háttértől */
+        border-radius: 16px;
+        padding: 2rem 1.5rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    html[data-theme="dark"] .login-card {
+        background-color: #1e293b; /* Sötét doboz a Dark módhoz */
+        border: 1px solid var(--auth-border);
+    }
+
+    /* Sötét mód gomb balra-fentre a logóval egy vonalban */
+    .theme-toggle-btn {
+        top: 15px;
+        right: 15px;
+        background-color: rgba(255,255,255,0.1);
+        border: none;
+        color: white; /* Hogy a sötét háttéren látszódjon */
+    }
+
+    html[data-theme="dark"] .theme-toggle-btn {
+        background-color: rgba(255,255,255,0.1);
+        color: white;
+    }
+}
+
+/* Extra pici mobilokhoz (iPhone SE, stb.) */
+@media (max-width: 400px) {
+    .auth-side-panel {
+        padding: 1.5rem 1rem;
+    }
+    .auth-main-panel {
+        padding: 1rem;
+    }
+    .login-card {
+        padding: 1.5rem 1rem;
+    }
+    .zhub-logo {
+        font-size: 2.5rem;
+        margin-bottom: 0;
+    }
+    .login-card .title.is-3 {
+        font-size: 1.5rem !important;
+    }
 }
