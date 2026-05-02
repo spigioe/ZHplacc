@@ -430,6 +430,7 @@ export async function renderTimetable(container) {
             const res = await apiFetch(`/exams/${id}`, { method: 'DELETE' });
             if (res.ok) { showToast("Vizsga törölve!", "is-success"); if (window.refreshSPA) window.refreshSPA(); }
         } else { deleteCustomClass(id); }
+        renderTimetable();
     });
 
     document.getElementById('dash-tt-add-btn')?.addEventListener('click', () => openAddClassModal());
