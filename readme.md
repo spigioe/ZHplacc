@@ -36,3 +36,13 @@ Az alkalmazás **Single Page Application (SPA)** architektúrára épül, minima
 1. Nyisd meg az oldalt **Chrome**-ban.
 2. Koppints a jobb felső három pontra.
 3. Válaszd a **"Telepítés"** vagy **"Webalkalmazás hozzáadása"** lehetőséget.
+
+
+## Known issues:
+
+* Modálok nem mindig jönnek elő
+* Gombok néha nem működnek normálisan
+* Zh/vizsga szerkesztése duplikálja az eseményt
+* Értesítések gomb még nem funkciónál
+* Jelszó visszaállítás nem küld még emailt
+* To-do lista az órarend fülön nem jelenik meg.
