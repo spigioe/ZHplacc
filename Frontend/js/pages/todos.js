@@ -120,6 +120,7 @@ export async function renderTodos(container) {
         </div>
     `;
     renderSidebarTodosWidget();
+
     // 4. Jobb oldali sáv gombjainak eseménykezelői (Modálok megnyitása a UI.js nélkül!)
     document.getElementById('dash-btn-add-zh')?.addEventListener('click', (e) => { e.preventDefault(); openAddZhModal(); });
     document.getElementById('dash-btn-add-exam')?.addEventListener('click', (e) => { e.preventDefault(); openAddExamModal(); });
@@ -167,6 +168,7 @@ export async function renderTodos(container) {
                 titleInput.value = ""; 
                 dateInput.value = ""; 
                 await loadAndRenderTodos(); 
+                renderSidebarTodosWidget();
             } else {
                 showToast("Hiba a mentés során!", "is-danger");
             }
@@ -235,6 +237,7 @@ async function loadAndRenderTodos() {
             if (card) card.style.opacity = "0.5";
             await apiFetch(`/todos/${id}/toggle`, { method: "PUT" });
             loadAndRenderTodos();
+            renderSidebarTodosWidget();
         }));
 
         // Törlés esemény
@@ -242,6 +245,7 @@ async function loadAndRenderTodos() {
             if (confirm("Biztosan törlöd ezt a feladatot?")) {
                 await apiFetch(`/todos/${e.currentTarget.getAttribute('data-id')}`, { method: "DELETE" });
                 loadAndRenderTodos();
+                renderSidebarTodosWidget();
             }
         }));
     } catch (err) { 
@@ -319,6 +323,9 @@ export async function renderSidebarTodosWidget() {
             if (window.location.hash === '#todos' || window.location.hash === '') {
                 // Ide betehetsz egy window.refreshSPA() hívást, ha használod!
                 if(window.refreshSPA) window.refreshSPA();
+            }
+            if (document.getElementById("todo-list-container")) {
+                loadAndRenderTodos();
             }
         }));
 
