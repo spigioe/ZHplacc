@@ -1,6 +1,6 @@
-import { state } from "./state.js";
-import { apiFetch, escapeHTML } from "./api.js";
-import { renderTimeline, updateDashboardStats, showToast } from "./ui.js";
+import { state } from "../core/state.js";
+import { apiFetch, escapeHTML } from "../core/api.js";
+import { renderTimeline, updateDashboardStats, showToast } from "../core/ui.js";
 
 // --- VIZSGÁK LETÖLTÉSE ---
 export async function fetchExams() {
@@ -48,7 +48,6 @@ export function openAddExamModal() {
         
         // SZIGORÚ SZŰRÉS: Csak az aktív félév tárgyai jöhetnek be
         const currentSubjects = (state.allSubjects || []).filter(s => s.semesterTag === activeSemester);
-        console.log(state.allSubjects);
         const options = currentSubjects.map(s => 
             `<option value="${s.id || s.Id}">${escapeHTML(s.name || s.Name)}</option>`
         ).join('');

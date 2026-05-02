@@ -1,0 +1,60 @@
+.todo-card { transition: all 0.2s ease-in-out; border-radius: 12px !important; border: 1px solid var(--bulma-border) !important; }
+            .todo-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important; border-color: var(--bulma-link) !important; }
+            .todo-card.is-completed { opacity: 0.6; background-color: var(--bulma-background-light) !important; border: 1px dashed var(--bulma-border) !important; }
+            .todo-card.is-completed:hover { opacity: 0.9; transform: none; box-shadow: none !important; border-color: var(--bulma-border) !important; }
+            .todo-input-wrapper { border-radius: 16px; border: 2px solid var(--bulma-border); transition: border-color 0.3s ease; }
+            .todo-input-wrapper:focus-within { border-color: var(--bulma-link); }
+            .todo-checkbox-custom { transform: scale(1.4); cursor: pointer; accent-color: var(--bulma-link); }
+            .dash-right { padding-left: 1.5rem; border-left: 1px solid var(--bulma-border); }
+            
+            /* Gördítősáv formázás a két oszlophoz */
+            .todo-scroll-area::-webkit-scrollbar { width: 6px; }
+            .todo-scroll-area::-webkit-scrollbar-thumb { background-color: var(--bulma-border); border-radius: 10px; }
+    
+.todo-checkbox {
+    margin-left: 3px;
+}
+
+/* ==========================================================================
+   RESZPONZÍV DIZÁJN (MOBIL / TABLET)
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* Új teendő űrlap: egymás alá törjük a beviteli mezőket és a gombot */
+    #add-todo-form {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+    
+    #add-todo-form .control, 
+    #add-todo-form button {
+        width: 100%;
+    }
+
+    #new-todo-title {
+        height: 50px !important; /* Nagyobb érintési felület */
+    }
+
+    /* A Kétoszlopos nézet (Mai / Későbbiek) egymás alá helyezése */
+    .dashboard-view .columns {
+        display: flex;
+        flex-direction: column;
+        margin: 0 !important;
+    }
+
+    .dashboard-view .column.is-half {
+        width: 100% !important;
+        flex: none;
+        height: auto !important; /* Kikapcsoljuk a fix 100% magasságot */
+        padding-top: 20px !important;
+    }
+
+    /* A görgethető területek magasságának felszabadítása mobilon, 
+       hogy a fő oldal (dash-center) görgessen, ne a belső kis dobozok */
+    .todo-scroll-area {
+        height: auto !important;
+        max-height: none !important;
+        overflow-y: visible !important;
+        padding-bottom: 0 !important;
+    }
+}

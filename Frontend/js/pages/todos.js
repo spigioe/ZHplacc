@@ -1,32 +1,9 @@
 // js/pages/todos.js
-import { apiFetch, escapeHTML } from '../api.js';
-import { showToast } from '../ui.js';
-import { state } from '../state.js';
+import { apiFetch, escapeHTML } from '../core/api.js';
+import { showToast } from '../core/ui.js';
+import { state } from '../core/state.js';
 
 export async function renderTodos(container) {
-    // Dinamikus CSS
-    if (!document.getElementById("todo-custom-styles")) {
-        const style = document.createElement("style");
-        style.id = "todo-custom-styles";
-        style.innerHTML = `
-            .todo-card { transition: all 0.2s ease-in-out; border-radius: 12px !important; border: 1px solid var(--bulma-border) !important; }
-            .todo-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important; border-color: var(--bulma-link) !important; }
-            .todo-card.is-completed { opacity: 0.6; background-color: var(--bulma-background-light) !important; border: 1px dashed var(--bulma-border) !important; }
-            .todo-card.is-completed:hover { opacity: 0.9; transform: none; box-shadow: none !important; border-color: var(--bulma-border) !important; }
-            .todo-input-wrapper { border-radius: 16px; border: 2px solid var(--bulma-border); transition: border-color 0.3s ease; }
-            .todo-input-wrapper:focus-within { border-color: var(--bulma-link); }
-            .todo-checkbox-custom { transform: scale(1.4); cursor: pointer; accent-color: var(--bulma-link); }
-            .dash-right { padding-left: 1.5rem; border-left: 1px solid var(--bulma-border); }
-            
-            /* Gördítősáv formázás a két oszlophoz */
-            .todo-scroll-area::-webkit-scrollbar { width: 6px; }
-            .todo-scroll-area::-webkit-scrollbar-thumb { background-color: var(--bulma-border); border-radius: 10px; }
-        `;
-        document.head.appendChild(style);
-    }
-
-    
-
     // HTML Generálás (Kétoszlopos belső felépítés)
     container.innerHTML = `
         <div class="dashboard-view">

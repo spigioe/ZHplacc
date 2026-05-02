@@ -1,0 +1,152 @@
+/* ==========================================================================
+   DASHBOARD (VEZÉRLŐPULT) CSS
+   ========================================================================== */
+
+/* --- Középső oszlop kártyái (Mai órák) --- */
+.dash-today-card {
+    border-left: 4px solid #3b82f6; /* Kék csík a bal oldalon */
+}
+
+.dash-today-card-title {
+    line-height: 1.2;
+}
+
+/* --- Középső oszlop kártyái (Közelgő számonkérések) --- */
+.dash-event-card {
+    overflow: hidden;
+}
+.dash-event-card.is-exam {
+    border-left: 4px solid var(--bulma-danger);
+}
+.dash-event-card.is-zh {
+    border-left: 4px solid var(--bulma-warning);
+}
+
+.dash-event-title {
+    line-height: 1.2;
+}
+
+.dash-event-footer {
+    border-top: 1px solid var(--bulma-border);
+    gap: 10px;
+}
+
+/* --- Gombok kikapcsolt text-decoration (alaphelyzetbe állítás) --- */
+.dash-btn-no-decor {
+    text-decoration: none !important;
+}
+
+/* --- Jobb Oldali Sidebar Dobozok --- */
+.dash-sidebar {
+    height: 100%;
+    overflow-y: auto;
+    padding-bottom: 20px;
+}
+
+.dash-stat-box-solid {
+    border: 1px solid var(--bulma-border);
+    box-shadow: none;
+}
+
+.dash-stat-box-flat {
+    border: none;
+    box-shadow: none;
+}
+
+.dash-stat-box-dashed {
+    border: 1px dashed var(--bulma-border);
+    box-shadow: none;
+    background: transparent;
+}
+
+/* ==========================================================================
+   RESZPONZÍV DIZÁJN (MOBIL / TABLET)
+   ========================================================================== */
+@media (max-width: 768px) {
+    
+    /* --- 1. A két nagy oszlop eltartása egymástól --- */
+    .dashboard-view .columns .column:nth-child(2) {
+        margin-top: 25px; /* Távolság a "Mai fókuszkodás" és a "Közelgő Számonkérések" között */
+    }
+
+    /* A "Közelgő Számonkérések" cím esetleges formázása */
+    .dashboard-view .column:nth-child(2) .title {
+        margin-top: 10px; /* Plusz távolság magának a címnek */
+    }
+
+    /* --- 2. Gombok egymás mellett (Új ZH / Új Vizsga) a jobb sávban --- */
+    /* A szülő konténert, ami alapból is-flex-direction-column, felülírjuk sor-irányúra */
+    .dash-sidebar .buttons.is-flex-direction-column {
+        flex-direction: row !important; /* Egymás mellé kényszerítés */
+        flex-wrap: nowrap; /* Nem engedjük új sorba törni */
+        gap: 10px; /* Távolság a két gomb között */
+        margin-bottom: 20px !important;
+    }
+    
+    /* A gombok pontosan a hely fele-felét kapják */
+    .dash-sidebar .buttons button {
+        margin: 0 !important; /* Töröljük a Bulma alap margókat */
+        flex: 1; /* Egyenlő szélesség kiosztása (50-50%) */
+        width: auto !important;
+        font-size: 0.85rem !important; /* Kisebb betű, hogy kiférjen */
+        padding-left: 5px;
+        padding-right: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .main-wrapper {
+        height: calc(100vh - 75px); /* A teljes magasság MÍNUSZ a lenti navbar magassága! */
+        overflow-y: auto; /* A fő konténer görgessen... */
+        overflow-x: hidden;
+    }
+
+    #router-view {
+        height: auto; /* NE 100% legyen, mert az elrontja a flex görgetést! */
+        overflow: visible; /* ...ne pedig a belső nézet! */
+    }
+
+    /* 2. JAVÍTÁS: A dashboard oszlopok ne vegyenek fel 100% magasságot */
+    .dashboard-view {
+        height: auto !important; /* Fontos! Kikapcsoljuk az asztali height: 100%-ot */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dash-center {
+        height: auto !important;
+        overflow-y: visible !important; /* A tartalom méretéhez igazodjon, ne saját görgetősávja legyen */
+        padding-bottom: 0 !important; /* Ne legyen dupla padding az oszlopok között */
+    }
+
+    .dash-right {
+        height: auto !important;
+        overflow-y: visible !important;
+        padding-bottom: 20px !important; /* Ez az igazi alja az oldalnak */
+    }
+
+    /* 3. Ha használtad a .dash-sidebar osztályt is a dashboard.css-ben: */
+    .dash-sidebar {
+        height: auto !important;
+    }
+}
+
+/* Ha nagyon kicsi a kijelző (pl. iPhone SE), a szöveg egy része eltűnik, csak az ikon és egy rövidebb szöveg marad */
+@media (max-width: 380px) {
+    .dash-sidebar .buttons button span.icon {
+        margin-right: 5px !important;
+    }
+    /* Eltüntetjük a "rögzítése" vagy "Új" szavakat, hogy ne follyon ki a gombból */
+    #dash-btn-add-zh {
+        font-size: 0.8rem !important;
+    }
+    #dash-btn-add-exam {
+        font-size: 0.8rem !important;
+    }
+}
+
+/* --- 3. Kártyák belső gombjainak (Szem, Kuka) szétosztása --- */
+.dash-event-footer {
+    justify-content: space-between !important;
+}

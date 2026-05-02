@@ -1,0 +1,264 @@
+/* ==========================================================================
+   TIMETABLE (ÓRAREND) CSS
+   ========================================================================== */
+
+/* --- Fő konténerek --- */
+
+.tt-scrollable-area {
+    position: relative;
+    background: var(--bulma-background);
+    border: 1px solid var(--bulma-border);
+    border-radius: 8px;
+    overflow: auto;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+/* --- Rács (Grid) beállítások --- */
+.tt-grid-container {
+    display: grid;
+    grid-template-columns: 60px repeat(5, 1fr);
+    min-width: 700px;
+    position: relative;
+}
+
+.tt-grid-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: var(--bulma-border);
+    opacity: 0.3;
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* --- Idővonal (Bal oszlop) --- */
+.tt-time-column {
+    background: var(--bulma-background-light);
+    border-right: 1px solid var(--bulma-border);
+}
+
+.tt-col-header-empty {
+    height: 40px;
+    border-bottom: 1px solid var(--bulma-border);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background-color: var(--bulma-scheme-main, #ffffff);
+}
+
+.tt-time-slot {
+    border-bottom: 1px dashed var(--bulma-border);
+    font-size: 0.75rem;
+    color: gray;
+    text-align: center;
+    padding-top: 5px;
+}
+
+/* --- Nap oszlopok --- */
+.tt-day-column {
+    position: relative;
+    border-right: 1px solid var(--bulma-border);
+}
+
+.tt-day-header {
+    height: 40px;
+    border-bottom: 2px solid var(--bulma-border);
+    background-color: var(--bulma-scheme-main, #ffffff);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.tt-day-title {
+    line-height: 1.2;
+}
+
+.tt-day-subtitle {
+    font-size: 0.65rem !important;
+}
+
+/* --- Esemény Kártyák (Hover Effekttel) --- */
+.tt-event-card {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    overflow: hidden;
+    z-index: 10;
+    cursor: pointer;
+    border-radius: 4px;
+    line-height: 1.15;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    padding: 4px 6px;
+    transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.tt-event-card:hover {
+    filter: brightness(0.85);
+    transform: scale(1.02);
+    z-index: 25 !important;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2) !important;
+}
+
+.tt-event-content {
+    font-size: 14px;
+    word-break: break-word;
+    color: inherit;
+    height: 100%;
+    overflow: hidden;
+}
+
+.tt-event-title {
+    color: inherit;
+    white-space: normal;
+}
+
+.tt-event-room {
+    color: inherit;
+    opacity: 0.85;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.tt-event-badges {
+    position: absolute;
+    bottom: 4px;
+    right: 5px;
+    display: flex;
+    gap: 5px;
+    color: inherit;
+    font-size: 13px;
+}
+
+/* --- Badges (Jelvények) --- */
+.tt-badge-icon {
+    background-color: white;
+    border-radius: 15px;
+    padding: 5px;
+    text-align: center;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5));
+}
+.tt-badge-warning { color: #fcd34d; }
+.tt-badge-critical { color: #fca5a5; }
+
+/* --- Piros Hover Vonal --- */
+.tt-hover-line {
+    position: absolute;
+    height: 2px;
+    background: #ef4444;
+    pointer-events: none;
+    display: none;
+    z-index: 15;
+    box-shadow: 0 0 8px rgba(239,68,68,0.6);
+}
+
+.tt-hover-time-label {
+    position: absolute;
+    left: 50%;
+    top: -24px;
+    background: #ef4444;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+/* --- Sidebar Dobozok --- */
+.tt-stat-box {
+    border: 1px solid var(--bulma-border);
+    box-shadow: none;
+}
+
+.tt-dashed-box {
+    border: 1px dashed var(--bulma-border);
+    box-shadow: none;
+    background: transparent;
+}
+
+/* ==========================================================================
+   RESZPONZÍV DIZÁJN (MOBIL / TABLET)
+   ========================================================================== */
+@media (max-width: 768px) {
+    
+    /* Fő keret oszloposra */
+    .timetable-page-layout {
+        flex-direction: column !important;
+        height: 100% !important; 
+        overflow: hidden !important;
+    }
+
+    /* 1. MOBIL CÍM -> Legfelülre (Order 1) */
+    .tt-mobile-header {
+        order: 1 !important;
+    }
+
+    /* 2. JOBB OLDALSÁV (Gomb + Statisztika) -> Középre (Order 2) */
+    .timetable-page-layout .dash-right {
+        order: 2 !important; 
+        width: 100% !important;
+        height: auto !important; 
+        border-left: none !important;
+        padding: 10px 15px 0 15px !important; /* Szorosabb térköz */
+        overflow-y: visible !important;
+        background-color: transparent !important;
+    }
+    .timetable-page-layout .dash-right .buttons {
+        margin-bottom: 10px !important;
+    }
+    .timetable-page-layout .dash-right .tt-dashed-box {
+        display: none !important; /* Napi Teendők rejtve maradnak a helyspórolás miatt */
+    }
+
+    /* 3. KÖZÉPSŐ OSZLOP (Órarend) -> Alulra (Order 3) */
+    .timetable-page-layout .dash-center {
+        order: 3 !important; 
+        width: 100% !important;
+        flex: 1 1 auto !important; 
+        display: flex;
+        flex-direction: column;
+        padding: 10px 15px 15px 15px !important;
+        overflow: hidden !important;
+    }
+
+    /* --- HÉT LÉPTETŐ TELJES SZÉLESSÉGBEN --- */
+    .tt-header-row {
+        margin-bottom: 5px !important; /* Szorosan rátapasztjuk a naptár tetejére */
+    }
+    .tt-week-nav {
+        width: 100% !important; /* Teljes képernyőszélesség */
+        display: flex;
+    }
+    .tt-week-nav .control.is-expanded {
+        flex-grow: 1; /* A középső szöveg kitölti a teret */
+    }
+    .tt-week-nav .button {
+        height: 36px !important; /* Mobilon ujjbarát, kényelmes magasság */
+    }
+
+    /* --- A NAPTÁR GÖRGETÉSE --- */
+    .timetable-wrapper {
+        flex-grow: 1; 
+        min-height: 0; 
+        overflow-x: auto !important; 
+        overflow-y: auto !important; 
+        -webkit-overflow-scrolling: touch; 
+        border-radius: 8px;
+        border: 1px solid var(--bulma-border);
+    }
+    .tt-grid-container {
+        min-width: 800px; 
+    }
+
+    /* SMART MENU OPTIMALIZÁLÁSA MOBILRA */
+    .tt-menu-item, .tt-sub-item {
+        height: 50px;
+        font-size: 1rem;
+    }
+    .tt-submenu-track {
+        height: 50px;
+    }
+}

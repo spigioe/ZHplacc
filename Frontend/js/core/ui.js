@@ -1,7 +1,7 @@
 // js/ui.js
 
 import { state } from "./state.js";
-import { getAutoSemesterStart, getWeekBoundaries } from "./sync.js";
+import { getAutoSemesterStart, getWeekBoundaries } from "../services/syncService.js";
 import { escapeHTML } from "./api.js";
 
 export function showToast(message, type = 'is-success') {
@@ -26,15 +26,6 @@ export function showToast(message, type = 'is-success') {
             setTimeout(() => toast.remove(), 300);
         }
     }, 3000);
-}
-
-export function addFrylabsToggle() {
-    const navItem = document.getElementById("frylabs-nav-item");
-    if(navItem) navItem.classList.remove("is-hidden");
-}
-export function toggleFrylabsVisibility() {
-    const box = document.getElementById('frylabs-box');
-    if(box) box.classList.toggle('is-hidden');
 }
 
 export function updateDashboardStats() {
@@ -246,3 +237,4 @@ export function renderTimeline() {
         timeline.insertAdjacentHTML("beforeend", timelineHtml);
     });
 }
+

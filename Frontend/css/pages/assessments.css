@@ -1,0 +1,157 @@
+/* ==========================================================================
+   ASSESSMENTS (SZÁMONKÉRÉSEK) CSS
+   ========================================================================== */
+
+/* --- Fő layout elemek --- */
+.ass-layout-wrapper {
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+}
+
+.ass-main-column {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    flex: 1;
+}
+
+.ass-header-area {
+    flex-shrink: 0;
+}
+
+.ass-table-container {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding-bottom: 20px;
+}
+
+.ass-sidebar-column {
+    height: 100%;
+    overflow-y: auto;
+    padding-bottom: 20px;
+}
+
+/* --- Táblázat formázás --- */
+.ass-table-box {
+    overflow: hidden;
+    border: 1px solid var(--bulma-border);
+    box-shadow: none;
+    background-color: var(--bulma-scheme-main);
+}
+
+.ass-table {
+    background-color: transparent;
+}
+
+.ass-table-head {
+    background-color: var(--bulma-background-light);
+}
+
+.ass-table-header-text {
+    color: var(--bulma-text-strong);
+}
+
+/* --- Jobb Oldali Sidebar Dobozok --- */
+.ass-stat-box-solid {
+    border: 1px solid var(--bulma-border);
+    box-shadow: none;
+}
+
+.ass-stat-box-dashed {
+    border: 1px dashed var(--bulma-border);
+    box-shadow: none;
+    background: transparent;
+}
+
+/* ==========================================================================
+   RESZPONZÍV DIZÁJN (MOBIL / TABLET)
+   ========================================================================== */
+@media (max-width: 768px) {
+    
+    /* 1. Fő keret oszlopos elrendezése */
+    .ass-layout-wrapper {
+        flex-direction: column !important;
+        height: auto !important;
+        overflow-y: visible !important; /* Engedjük a globális oldalgörgetést */
+    }
+
+    /* 2. MOBIL CÍM (Legfelül) */
+    .ass-mobile-header {
+        order: 1 !important;
+    }
+
+    /* 3. JOBB OLDALSÁV (Gombok + Statisztika) -> Cím alá (Order 2) */
+    .ass-sidebar-column {
+        order: 2 !important;
+        width: 100% !important;
+        height: auto !important;
+        border-left: none !important;
+        padding: 10px 15px 0 15px !important; /* Szűkebb felső padding */
+    }
+    
+    /* Gombok egymás mellé kényszerítése mobilon (Dashboard stílusban) */
+    .ass-sidebar-column .ass-action-buttons {
+        flex-direction: row !important;
+        flex-wrap: nowrap;
+        gap: 10px;
+        margin-bottom: 10px !important;
+    }
+    
+    .ass-sidebar-column .ass-action-buttons button {
+        margin: 0 !important;
+        flex: 1; /* 50-50% helymegosztás */
+        width: auto !important;
+        font-size: 0.8rem !important; /* Kisebb betű a gombban */
+        height: auto;
+        padding: 10px 5px;
+        white-space: normal;
+        line-height: 1.2;
+    }
+
+    /* Kisebb kijelzőkön (iPhone SE) szöveg csonkolás */
+    @media (max-width: 380px) {
+        .ass-sidebar-column .ass-action-buttons button i {
+            margin-right: 5px !important;
+        }
+        .ass-sidebar-column .ass-action-buttons button {
+            font-size: 0.75rem !important;
+        }
+    }
+    
+    /* A mobilon felesleges "Teendők" doboz elrejtése a helyspórolás végett */
+    .ass-sidebar-column .ass-stat-box-dashed {
+        display: none !important;
+    }
+
+    /* 4. KÖZÉPSŐ OSZLOP (Táblázat) -> Alulra (Order 3) */
+    .ass-main-column {
+        order: 3 !important;
+        width: 100% !important;
+        padding: 10px 15px 15px 15px !important;
+        overflow-y: visible !important;
+    }
+
+    /* 5. Táblázat vízszintes görgetése (Swipe) */
+    .ass-table-container {
+        padding-bottom: 0 !important;
+    }
+    
+    .ass-table-box {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch; /* Sima görgetés telefonon */
+        border-radius: 8px; /* Lekerekített doboz görgetéskor szebb */
+    }
+    
+    .ass-table {
+        min-width: 650px; /* Megakadályozza a cellák összeomlását, kikényszeríti a vízszintes görgetést */
+    }
+
+    /* Gombok (Részletek) kicsit kisebbek mobilon, hogy több hely maradjon a táblázatnak */
+    .btn-view-assessment {
+        font-size: 0.8rem !important;
+        padding: 5px 10px !important;
+    }
+}

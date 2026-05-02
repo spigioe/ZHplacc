@@ -1,7 +1,7 @@
-import { state } from "./state.js";
-import { escapeHTML, apiFetch } from "./api.js";
-import { showToast, updateDashboardStats, updateCharCount, calculateCurrentWeek, renderTimeline} from "./ui.js";
-import { getAutoSemesterStart, getCurrentSemesterString } from "./sync.js";
+import { state } from "../core/state.js";
+import { escapeHTML, apiFetch } from "../core/api.js";
+import { showToast, updateDashboardStats, updateCharCount, calculateCurrentWeek, renderTimeline} from "../core/ui.js";
+import { getAutoSemesterStart, getCurrentSemesterString } from "./syncService.js";
 
 export async function fetchZhs() {
     try {

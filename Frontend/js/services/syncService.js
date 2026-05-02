@@ -1,10 +1,64 @@
-import { state } from "./state.js";
-import { logout, escapeHTML, apiFetch } from "./api.js";
-import { fetchOrarend, openViewClassModal, closeViewClassModal, routeToZhAddFromClass, openAddClassModal, closeAddClassModal, submitCustomClass } from "./class.js";
-import { fetchSettings, openSettingsModal, closeSettingsModal, refreshSettingsInPage, saveSettings, resetSettings } from "./settings.js";
-import { fetchSubjects, openAddSubjectModal, openEditSubjectModal, openViewSubjectModal, closeViewSubjectModal, closeAddSubjectModal, submitSubject, saveEditedSubject, deleteSubject } from "./subjects.js";
-import { showToast, addFrylabsToggle, toggleFrylabsVisibility, updateDashboardStats, calculateCurrentWeek, updateCurrentWeekBox, changeDisplayedWeek, renderWeeklyCalendar, updateCharCount } from "./ui.js";
-import { fetchZhs, openViewZhModal, closeViewZhModal, openAddZhModal, closeAddZhModal, openEditZhModal, calculateZhWeek, submitZh, saveEditedZh, deleteZh} from "./zarthelyik.js";
+import { 
+    state
+} from "../core/state.js";
+
+import { 
+    logout,
+    escapeHTML,
+    apiFetch 
+} from "../core/api.js";
+
+import {
+    fetchOrarend, 
+    openViewClassModal,
+    closeViewClassModal,
+    routeToZhAddFromClass, 
+    openAddClassModal, 
+    closeAddClassModal, 
+    submitCustomClass 
+} from "./classService.js";
+import { 
+    fetchSettings,
+    openSettingsModal,
+    closeSettingsModal,
+    refreshSettingsInPage,
+    saveSettings, 
+    resetSettings 
+} from "./settingService.js";
+
+import { 
+    fetchSubjects, 
+    openAddSubjectModal, 
+    openEditSubjectModal, 
+    openViewSubjectModal, 
+    closeViewSubjectModal, 
+    closeAddSubjectModal, 
+    submitSubject, 
+    saveEditedSubject, 
+    deleteSubject 
+} from "./subjectService.js";
+
+import { 
+    showToast, 
+    updateDashboardStats, 
+    calculateCurrentWeek, 
+    updateCurrentWeekBox, 
+    changeDisplayedWeek, 
+    renderWeeklyCalendar, 
+    updateCharCount 
+} from "../core/ui.js";
+
+import { 
+    fetchZhs, 
+    openViewZhModal, 
+    closeViewZhModal, 
+    openAddZhModal, 
+    closeAddZhModal, 
+    openEditZhModal, 
+    calculateZhWeek, 
+    submitZh, 
+    saveEditedZh, 
+    deleteZh} from "./zarthelyiService.js";
 
 
 export function openImportModal() {

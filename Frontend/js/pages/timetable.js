@@ -1,11 +1,11 @@
 // js/pages/timetable.js
-import { state } from '../state.js';
-import { escapeHTML, apiFetch} from '../api.js';
-import { calculateCurrentWeek, showToast} from '../ui.js';
-import { openAddClassModal, openViewClassModal, deleteCustomClass } from '../class.js';
-import { getAutoSemesterStart } from '../sync.js';
-import { openViewZhModal, openAddZhModal} from '../zarthelyik.js';
-import { openViewExamModal, openAddExamModal} from '../exams.js';
+import { state } from '../core/state.js';
+import { escapeHTML, apiFetch} from '../core/api.js';
+import { calculateCurrentWeek, showToast} from '../core/ui.js';
+import { openAddClassModal, openViewClassModal, deleteCustomClass } from '../services/classService.js';
+import { getAutoSemesterStart } from '../services/syncService.js';
+import { openViewZhModal, openAddZhModal} from '../services/zarthelyiService.js';
+import { openViewExamModal, openAddExamModal} from '../services/examService.js';
 
 let displayWeek = null;
 
@@ -14,8 +14,8 @@ export async function renderTimetable(container) {
     state.currentTimetableWeek = displayWeek;
 
     const days = ['Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'Péntek'];
-    const startHour = 0;  // Reggel 0:00 (vagy ahogy beállítottad)
-    const endHour = 24;   // Este 24:00
+    const startHour = 0; 
+    const endHour = 24;  
     const hourHeight = 60;
 
     const semesterStart = getAutoSemesterStart ? getAutoSemesterStart() : new Date();
@@ -47,43 +47,41 @@ export async function renderTimetable(container) {
     const getTopOffset = (date) => (date.getHours() - startHour) * hourHeight + date.getMinutes();
 
     const gridLinesHtml = Array.from({length: endHour - startHour}, (_, i) => `
-        <div style="position: absolute; top: ${(i * hourHeight) + 40}px; left: 0; right: 0; height: 1px; background-color: var(--bulma-border); opacity: 0.3; z-index: 5; pointer-events: none;"></div>
+        <div class="tt-grid-line" style="top: ${(i * hourHeight) + 40}px;"></div>
     `).join('');
 
-    // --- HTML RENDERELÉS (DASHBOARD-VIEW ÉS HOVER ANIMÁCIÓK) ---
     container.innerHTML = `
-        <style>
-            .tt-event-card {
-                transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease !important;
-            }
-            .tt-event-card:hover {
-                filter: brightness(0.85);
-                transform: scale(1.02);
-                z-index: 25 !important;
-                box-shadow: 0 6px 12px rgba(0,0,0,0.2) !important;
-            }
-        </style>
-
-        <div class="dashboard-view" style="height: 100%; overflow: hidden; display: flex; user-select: none;">
+        <div class="dashboard-view timetable-page-layout" style="height: 100%; overflow: hidden; display: flex; user-select: none;">
             
+            <!-- MOBIL CÍM (Csak mobilon látszik, legfelül) -->
+            <div class="tt-mobile-header is-hidden-tablet px-4 pt-4">
+                <h2 class="title is-4 mb-1">Heti Órarend</h2>
+                <p class="has-text-grey is-size-7">${weekStartObj.toLocaleDateString('hu-HU', dateOpts)} - ${fridayObj.toLocaleDateString('hu-HU', dateOpts)}</p>
+            </div>
+
+            <!-- BAL / KÖZÉPSŐ OSZLOP: ÓRAREND -->
             <div class="dash-center" style="display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; flex: 1;">
                 
-                <div class="is-flex is-justify-content-space-between is-align-items-center mb-4" style="flex-shrink: 0;">
-                    <div>
+                <div class="is-flex is-justify-content-space-between is-align-items-center mb-4 tt-header-row" style="flex-shrink: 0;">
+                    <!-- ASZTALI CÍM (Mobilon elrejtve) -->
+                    <div class="is-hidden-mobile">
                         <h2 class="title is-4 mb-1">Heti Órarend</h2>
                         <p class="has-text-grey is-size-7">${weekStartObj.toLocaleDateString('hu-HU', dateOpts)} - ${fridayObj.toLocaleDateString('hu-HU', dateOpts)}</p>
                     </div>
-                    <div class="field has-addons">
+                    
+                    <!-- HÉT LÉPTETŐ -->
+                    <div class="field has-addons tt-week-nav">
                         <p class="control"><button class="button is-small" id="tt-prev-week"><i class="fa-solid fa-chevron-left"></i></button></p>
-                        <p class="control"><span class="button is-small is-static has-text-weight-bold" style="min-width: 80px;">${displayWeek}. hét</span></p>
+                        <p class="control is-expanded"><span class="button is-small is-static has-text-weight-bold is-fullwidth">${displayWeek}. hét</span></p>
                         <p class="control"><button class="button is-small" id="tt-next-week"><i class="fa-solid fa-chevron-right"></i></button></p>
                     </div>
                 </div>
-
-                <div class="timetable-wrapper" style="position: relative; background: var(--bulma-background); border: 1px solid var(--bulma-border); border-radius: 8px; overflow: auto; flex-grow: 1; min-height: 0;">
-                    <div style="display: grid; grid-template-columns: 60px repeat(5, 1fr); min-width: 700px; position: relative;" id="tt-grid">
-                        <div id="tt-hover-line" style="position: absolute; height: 2px; background: #ef4444; pointer-events: none; display: none; z-index: 15; box-shadow: 0 0 8px rgba(239,68,68,0.6);">
-                            <div id="tt-hover-time" style="position: absolute; left: 50%; top: -24px; background: #ef4444; color: white; font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; font-weight: bold; transform: translateX(-50%); white-space: nowrap;">08:00</div>
+                
+                <div class="tt-scrollable-area timetable-wrapper">
+                    <div class="tt-grid-container" id="tt-grid">
+                        
+                        <div id="tt-hover-line" class="tt-hover-line">
+                            <div id="tt-hover-time" class="tt-hover-time-label">08:00</div>
                         </div>
 
                         <!-- ÚJ SMART MENÜ -->
@@ -92,7 +90,6 @@ export async function renderTimetable(container) {
                             <button id="tt-btn-del" class="tt-menu-item has-text-danger" style="display: none;"><i class="fa-solid fa-trash-can" style="width: 16px; text-align: center;"></i> Törlés</button>
                             <button id="tt-btn-add" class="tt-menu-item"><i class="fa-solid fa-plus" style="width: 16px; text-align: center;"></i> Új esemény</button>
 
-                            <!-- Animált Almenü a 3 opcióval -->
                             <div id="tt-submenu" class="tt-submenu-wrapper">
                                 <div class="tt-submenu-track">
                                     <div class="tt-sub-items-container">
@@ -104,28 +101,32 @@ export async function renderTimetable(container) {
                             </div>
                         </div>
 
-                        <div style="background: var(--bulma-background-light); border-right: 1px solid var(--bulma-border);">
-                            <div style="height: 40px; border-bottom: 1px solid var(--bulma-border); position: sticky; top: 0; z-index: 20; background-color: var(--bulma-scheme-main, #ffffff);"></div>
+                        <!-- IDŐVONAL OSZLOP -->
+                        <div class="tt-time-column">
+                            <div class="tt-col-header-empty"></div>
                             ${Array.from({length: endHour - startHour}, (_, i) => `
-                                <div style="height: ${hourHeight}px; border-bottom: 1px dashed var(--bulma-border); font-size: 0.75rem; color: gray; text-align: center; padding-top: 5px;">
+                                <div class="tt-time-slot" style="height: ${hourHeight}px;">
                                     ${String(startHour + i).padStart(2, '0')}:00
                                 </div>
                             `).join('')}
                         </div>
 
+                        <!-- NAPOK OSZLOPAI -->
                         ${days.map((day, dIdx) => {
                             const dayNum = dIdx + 1;
                             const currentDayObj = new Date(weekStartObj.getTime() + (dayNum - 1) * 24 * 60 * 60 * 1000);
                             const dayDateStr = currentDayObj.toLocaleDateString('hu-HU', { month: '2-digit', day: '2-digit' });
 
                             return `
-                            <div id="day-col-${dayNum}" class="tt-day-column" data-day="${dayNum}" style="position: relative; border-right: 1px solid var(--bulma-border);">
-                                <div class="has-text-centered py-2" style="height: 40px; border-bottom: 2px solid var(--bulma-border); background-color: var(--bulma-scheme-main, #ffffff); position: sticky; top: 0; z-index: 20;">
-                                    <div class="has-text-weight-bold is-size-7" style="line-height: 1.2;">${day}</div>
-                                    <div class="has-text-grey is-size-7" style="font-size: 0.65rem !important;">${dayDateStr}</div>
+                            <div id="day-col-${dayNum}" class="tt-day-column" data-day="${dayNum}">
+                                <div class="has-text-centered py-2 tt-day-header">
+                                    <div class="has-text-weight-bold is-size-7 tt-day-title">${day}</div>
+                                    <div class="has-text-grey is-size-7 tt-day-subtitle">${dayDateStr}</div>
                                 </div>
                                 
                                 ${gridLinesHtml}
+                                
+                                <!-- ESEMÉNYEK EBBEN A NAPBAN -->
                                 ${allEvents.filter(e => (e.dayOfWeekIndex || e.DayOfWeek) === dayNum).map(e => {
                                     const top = getTopOffset(e.startObj);
                                     const height = getTopOffset(e.endObj) - top;
@@ -152,30 +153,30 @@ export async function renderTimetable(container) {
                                     }
 
                                     let badgesHtml = '';
-                                    if (e.importance === 1) badgesHtml += `<i class="fa-solid fa-triangle-exclamation" style="color: #fcd34d; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); background-color: white; border-radius: 15px; padding: 5px; text-align: center;" title="Fontos"></i>`;
-                                    if (e.importance === 2) badgesHtml += `<i class="fa-solid fa-skull-crossbones" style="color: #fca5a5; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); background-color: white; border-radius: 15px; padding: 5px; text-align: center;" title="Kritikus"></i>`;
+                                    if (e.importance === 1) badgesHtml += `<i class="fa-solid fa-triangle-exclamation tt-badge-icon tt-badge-warning" title="Fontos"></i>`;
+                                    if (e.importance === 2) badgesHtml += `<i class="fa-solid fa-skull-crossbones tt-badge-icon tt-badge-critical" title="Kritikus"></i>`;
                                     if (e.notes && e.notes.trim() !== "") badgesHtml += `<i class="fa-regular fa-comment-dots" title="Van megjegyzés"></i>`;
                                     
                                     const tooltipText = `${e.subject}\nTerem: ${e.room || '-'}\n${e.notes ? 'Megjegyzés: ' + e.notes : ''}`;
-                                    const borderStyle = e.isCustom ? `border-left: 4px solid ${textColor === '#ffffff' ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.8)'};` : "border: 1px solid rgba(0,0,0,0.1);";
+                                    const borderStyle = e.isCustom ? `border-left: 4px solid ${textColor === '#ffffff' ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.8)'} !important;` : "border: 1px solid rgba(0,0,0,0.1) !important;";
 
                                     return `
                                         <div class="notification ${colorClass} mb-0 tt-event-card" 
                                              data-id="${e.id}" data-type="${e.type}" data-iscustom="${e.isCustom || false}"
                                              title="${escapeHTML(tooltipText)}"
-                                             style="position: absolute; top: ${top + 40}px; left: 4px; right: 4px; height: ${height - 2}px; overflow: hidden; z-index: 10; cursor: pointer; ${borderStyle} border-radius: 4px; line-height: 1.15; box-shadow: 0 2px 4px rgba(0,0,0,0.15); ${inlineStyle} padding: 4px 6px;">
+                                             style="top: ${top + 40}px; height: ${height - 2}px; ${borderStyle} ${inlineStyle}">
                                             
-                                            <div style="font-size: 14px; word-break: break-word; color: inherit; height: 100%; overflow: hidden;">
-                                                <p class="has-text-weight-bold is-marginless" style="color: inherit; white-space: normal;">
+                                            <div class="tt-event-content">
+                                                <p class="has-text-weight-bold is-marginless tt-event-title">
                                                     ${escapeHTML(e.subject)}
                                                 </p>
-                                                <p class="is-marginless" style="color: inherit; opacity: 0.85; font-size: 12px; margin-top: 4px;">
+                                                <p class="is-marginless tt-event-room">
                                                     ${escapeHTML(e.room || '-')}
                                                 </p>
                                             </div>
                                             
                                             ${badgesHtml ? `
-                                            <div class="event-badges" style="position: absolute; bottom: 4px; right: 5px; display: flex; gap: 5px; color: inherit; font-size: 13px;">
+                                            <div class="tt-event-badges">
                                                 ${badgesHtml}
                                             </div>
                                             ` : ''}
@@ -189,6 +190,7 @@ export async function renderTimetable(container) {
                 </div>
             </div>
 
+            <!-- JOBB OSZLOP: STATISZTIKA -->
             <div class="dash-right" style="height: 100%; overflow-y: auto; padding-bottom: 20px;">
                 <div class="buttons mb-4">
                     <button class="button is-link is-light is-fullwidth" id="dash-tt-add-btn">
@@ -196,7 +198,7 @@ export async function renderTimetable(container) {
                     </button>
                 </div>
 
-                <div class="box p-4 mb-4" style="border: 1px solid var(--bulma-border); box-shadow: none;">
+                <div class="box p-4 mb-4 tt-stat-box">
                     <h3 class="title is-6 has-text-grey mb-3">Heti Statisztika</h3>
                     <div class="is-flex is-justify-content-space-between mb-2">
                         <span class="has-text-weight-semibold">Tanórák:</span>
@@ -212,7 +214,7 @@ export async function renderTimetable(container) {
                     </div>
                 </div>
 
-                <div class="box p-4" style="border: 1px dashed var(--bulma-border); box-shadow: none; background: transparent;">
+                <div class="box p-4 tt-dashed-box">
                     <div class="has-text-centered py-3">
                         <span class="icon is-large has-text-grey-light mb-2"><i class="fa-solid fa-list-check fa-2x"></i></span>
                         <h3 class="title is-6 has-text-grey mb-1">Napi Teendők</h3>
@@ -225,7 +227,15 @@ export async function renderTimetable(container) {
 
     const wrapper = container.querySelector('.timetable-wrapper');
     if (wrapper) {
-        wrapper.scrollTop = (7 - startHour) * hourHeight; 
+        // Kis késleltetés kell, hogy a DOM biztosan renderelődjön, mielőtt görgetünk
+        setTimeout(() => {
+            // A 8:00 (vagy 7:00) távolsága pixelben:
+            // Óránként 60px (hourHeight), levonva a fejléc magasságát (40px)
+            const targetHour = 8; // Ide akarunk ugrani
+            const scrollPosition = ((targetHour - startHour) * hourHeight) - 20; 
+            
+            wrapper.scrollTop = scrollPosition;
+        }, 10);
     }
 
     // --- INTERAKTÍV LOGIKA ---
@@ -386,7 +396,6 @@ export async function renderTimetable(container) {
         else openViewClassModal(id);
     });
 
-    // === ITT VAN A JAVÍTOTT TÖRLÉS ===
     btnDel.addEventListener('click', async (e) => {
         e.stopPropagation(); 
         closeMenu();
@@ -397,10 +406,8 @@ export async function renderTimetable(container) {
             const res = await apiFetch(`/zarthelyik/${id}`, { method: 'DELETE' });
             if (res.ok) { 
                 showToast("ZH törölve!", "is-success"); 
-                // Frissítjük a lokális memóriát:
                 state.allZhs = (state.allZhs || []).filter(z => z.id !== id && z.Id !== id); 
-                if (window.refreshSPA) window.refreshSPA(); // Vagy dashboard frissítés
-                // És ami a lényeg: újra rendereljük magát az órarendet:
+                if (window.refreshSPA) window.refreshSPA();
                 renderTimetable(container); 
             }
         } else if (type === 'exam' && confirm("Biztosan törlöd ezt a Vizsgát?")) {
@@ -412,9 +419,7 @@ export async function renderTimetable(container) {
                 renderTimetable(container); 
             }
         } else { 
-            // Egyéni órák / Teendők törlése:
             deleteCustomClass(id); 
-            // Pici késleltetés a törlés lefutása miatt:
             setTimeout(() => renderTimetable(container), 200);
         }
     });

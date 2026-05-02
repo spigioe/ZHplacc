@@ -1,5 +1,5 @@
 // js/state.js
-import { getCurrentSemesterString } from "./sync.js";
+import { getCurrentSemesterString } from "../services/syncService.js";
 
 export const state = {
     allSubjects: [],

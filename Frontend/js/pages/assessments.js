@@ -1,7 +1,9 @@
-import { state } from '../state.js';
-import { escapeHTML } from '../api.js';
-import { openViewZhModal, openAddZhModal } from '../zarthelyik.js';
-import { openViewExamModal, openAddExamModal } from '../exams.js';
+// js/pages/assessments.js
+import { state } from '../core/state.js';
+import { escapeHTML } from '../core/api.js';
+import { openViewZhModal, openAddZhModal } from '../services/zarthelyiService.js';
+import { openViewExamModal, openAddExamModal } from '../services/examService.js';
+import { renderSidebarTodosWidget } from './todos.js';
 
 export async function renderAssessments(container) {
     // 1. Dátum "ma éjfél" kiszámítása (hogy a mai ZH is megjelenjen)
@@ -53,7 +55,7 @@ export async function renderAssessments(container) {
                     <span class="is-size-7 has-text-grey font-weight-normal">${timeStr}</span>
                 </td>
                 <td>${typeTag}</td>
-                <td class="has-text-weight-bold" style="color: #3b82f6;">${escapeHTML(evt.subjectName || evt.SubjectName || "Ismeretlen")}</td>
+                <td class="has-text-weight-bold has-text-link">${escapeHTML(evt.subjectName || evt.SubjectName || "Ismeretlen")}</td>
                 <td class="has-text-grey">${escapeHTML(evt.room || evt.Room || "-")}</td>
                 <td><span class="tag ${tagClass} has-text-weight-bold">${countdown}</span></td>
                 <td class="has-text-right">
@@ -63,30 +65,37 @@ export async function renderAssessments(container) {
         `;
     }).join('');
 
-    // --- KÉTOSZLOPOS ELRENDEZÉS BEVEZETÉSE ---
+    // --- KÉTOSZLOPOS ELRENDEZÉS (CSS-BE KISZERVEZVE) ---
     container.innerHTML = `
-        <div class="dashboard-view" style="height: 100%; overflow: hidden; display: flex;">
+        <div class="dashboard-view ass-layout-wrapper">
             
-            <!-- BAL/KÖZÉPSŐ OSZLOP (Fő tartalom) -->
-            <div class="dash-center" style="display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; flex: 1;">
+            <!-- MOBIL CÍM (Csak mobilon látszik, legfelül) -->
+            <div class="ass-mobile-header is-hidden-tablet px-4 pt-4">
+                <h2 class="title is-4 mb-1">Közelgő Számonkérések</h2>
+                <p class="has-text-grey is-size-7">Az összes jövőbeli ZH és Vizsga</p>
+            </div>
+
+            <!-- BAL/KÖZÉPSŐ OSZLOP (Fő tartalom - Táblázat) -->
+            <div class="dash-center ass-main-column">
                 
-                <div class="is-flex is-justify-content-space-between is-align-items-center mb-4" style="flex-shrink: 0;">
+                <!-- ASZTALI CÍM (Mobilon elrejtve) -->
+                <div class="is-flex is-justify-content-space-between is-align-items-center mb-4 ass-header-area is-hidden-mobile">
                     <div>
                         <h2 class="title is-4 mb-1">Közelgő Számonkérések</h2>
                         <p class="has-text-grey is-size-7">Az összes jövőbeli ZH és Vizsga időrendben</p>
                     </div>
                 </div>
                 
-                <div style="overflow-y: auto; flex-grow: 1; padding-bottom: 20px;">
-                    <div class="box p-0" style="overflow: hidden; border: 1px solid var(--bulma-border); box-shadow: none; background-color: var(--bulma-scheme-main);">
-                        <table class="table is-fullwidth is-hoverable mb-0" style="background-color: transparent;">
-                            <thead style="background-color: var(--bulma-background-light);">
+                <div class="ass-table-container">
+                    <div class="box p-0 ass-table-box">
+                        <table class="table is-fullwidth is-hoverable mb-0 ass-table">
+                            <thead class="ass-table-head">
                                 <tr>
-                                    <th style="color: var(--bulma-text-strong);">Időpont</th>
-                                    <th style="color: var(--bulma-text-strong);">Típus</th>
-                                    <th style="color: var(--bulma-text-strong);">Tantárgy</th>
-                                    <th style="color: var(--bulma-text-strong);">Helyszín</th>
-                                    <th style="color: var(--bulma-text-strong);">Visszaszámlálás</th>
+                                    <th class="ass-table-header-text">Időpont</th>
+                                    <th class="ass-table-header-text">Típus</th>
+                                    <th class="ass-table-header-text">Tantárgy</th>
+                                    <th class="ass-table-header-text">Helyszín</th>
+                                    <th class="ass-table-header-text">Visszaszámlálás</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -98,9 +107,9 @@ export async function renderAssessments(container) {
                 </div>
             </div>
 
-            <!-- JOBB OSZLOP (Gombok és Statisztika) -->
-            <div class="dash-right" style="height: 100%; overflow-y: auto; padding-bottom: 20px;">
-                <div class="buttons mb-4">
+            <!-- JOBB OSZLOP (Gombok, Statisztika és Napi Teendők) -->
+            <div class="dash-right ass-sidebar-column">
+                <div class="buttons mb-4 ass-action-buttons">
                     <button class="button is-warning is-light is-fullwidth" id="ass-add-zh">
                         <i class="fa-solid fa-plus mr-2"></i> Új ZH Rögzítése
                     </button>
@@ -109,7 +118,7 @@ export async function renderAssessments(container) {
                     </button>
                 </div>
 
-                <div class="box p-4 mb-4" style="border: 1px solid var(--bulma-border); box-shadow: none;">
+                <div class="box p-4 mb-4 ass-stat-box-solid">
                     <h3 class="title is-6 has-text-grey mb-3">Összesítő</h3>
                     <div class="is-flex is-justify-content-space-between mb-2">
                         <span class="has-text-weight-semibold">Hátralévő ZH-k:</span>
@@ -121,17 +130,29 @@ export async function renderAssessments(container) {
                     </div>
                 </div>
                 
+                <!-- IGAZI TEENDŐK WIDGET (Mobilon elrejtjük a helyspórolás miatt) -->
+                <div class="box p-4 ass-stat-box-dashed">
+                    <div id="sidebar-todo-widget">
+                        <div class="has-text-centered py-3">
+                            <div class="loader is-loading mx-auto"></div>
+                        </div>
+                    </div>
+                </div>
+                
             </div>
         </div>
     `;
 
+    // Widget inicializálása
+    renderSidebarTodosWidget();
+
     // --- ESEMÉNYKEZELŐK TISZTA IMPORTOKKAL ---
     document.getElementById('ass-add-zh')?.addEventListener('click', () => {
-        openAddZhModal(); // Közvetlen hívás!
+        openAddZhModal(); 
     });
     
     document.getElementById('ass-add-exam')?.addEventListener('click', () => {
-        openAddExamModal(); // Közvetlen hívás!
+        openAddExamModal(); 
     });
 
     document.querySelectorAll('.btn-view-assessment').forEach(btn => {

@@ -1,8 +1,9 @@
 // js/pages/subjects.js
-import { state } from '../state.js';
-import { escapeHTML } from '../api.js';
-import { calculateCurrentWeek } from '../ui.js';
-import { openAddSubjectModal, openEditSubjectModal, openViewSubjectModal, deleteSubject } from '../subjects.js';
+import { state } from '../core/state.js';
+import { escapeHTML } from '../core/api.js';
+import { calculateCurrentWeek } from '../core/ui.js';
+import { openAddSubjectModal, openEditSubjectModal, openViewSubjectModal, deleteSubject } from '../services/subjectService.js';
+import { renderSidebarTodosWidget } from './todos.js';
 
 let localDisplayedSemester = null;
 
@@ -41,21 +42,21 @@ export async function renderSubjects(container) {
             const typeTag = isExam ? '<span class="tag is-danger is-light">Vizsgás</span>' : '<span class="tag is-success is-light">Évközi</span>';
             let zhDots = "";
             for (let i = 0; i < zhCount; i++) {
-                zhDots += `<span style="height: 10px; width: 10px; background-color: var(--bulma-border); border-radius: 50%; display: inline-block; margin-right: 4px;"></span>`;
+                zhDots += `<span class="subj-zh-dot"></span>`;
             }
 
             return `
             <div class="column is-6">
-                <div class="box h-100 is-flex is-flex-direction-column">
+                <div class="box subj-card">
                     <div class="is-flex is-justify-content-space-between is-align-items-flex-start mb-2">
-                        <h3 class="title is-5 mb-0" style="line-height: 1.3;">${escapeHTML(subName)}</h3>
+                        <h3 class="title is-5 mb-0 subj-card-title">${escapeHTML(subName)}</h3>
                         <div class="ml-2">${typeTag}</div>
                     </div>
                     <div class="mb-auto">
                         <p class="is-size-7 has-text-grey mb-1"><strong>${credits} Kredit</strong></p>
                         ${zhCount > 0 ? `<p class="is-size-7 has-text-grey is-flex is-align-items-center">ZH-k: <span class="ml-2">${zhDots}</span></p>` : ''}
                     </div>
-                    <div class="is-flex is-justify-content-flex-end mt-4 pt-3" style="border-top: 1px solid var(--bulma-border); gap: 10px;">
+                    <div class="is-flex is-justify-content-flex-end mt-4 pt-3 subj-card-footer">
                         <button class="button is-small is-ghost has-text-info p-0 sub-btn-view" data-id="${subId}">
                             <span class="icon is-small"><i class="fa-solid fa-eye"></i></span><span>Részletek</span>
                         </button>
@@ -77,33 +78,43 @@ export async function renderSubjects(container) {
 
     // 3. Teljes HTML struktúra (Konzisztens jobb oldali panellel)
     container.innerHTML = `
-        <div class="dashboard-view" style="height: 100%; overflow-y: auto; padding-bottom: 100px;">
-            <div class="dash-center">
-                <h2 class="title is-4 mb-4">Tantárgyak</h2>
+        <div class="dashboard-view subj-layout-wrapper">
+            
+            <!-- MOBIL CÍM (Csak mobilon látszik, legfelül) -->
+            <div class="subj-mobile-header is-hidden-tablet px-4 pt-4">
+                <h2 class="title is-4 mb-0">Tantárgyak</h2>
+            </div>
 
-                <div class="box mb-5 is-flex is-justify-content-space-between is-align-items-center" style="box-shadow: none; background-color: var(--bulma-scheme-main-bis);">
+            <!-- KÖZÉPSŐ OSZLOP (Fő tartalom) -->
+            <div class="dash-center subj-main-column">
+                
+                <!-- ASZTALI CÍM (Mobilon elrejtve) -->
+                <h2 class="title is-4 mb-4 is-hidden-mobile">Tantárgyak</h2>
+
+                <div class="box mb-4 is-flex is-justify-content-space-between is-align-items-center subj-control-bar">
                     <button class="button is-small" id="sem-prev-btn" ${!hasPrev ? 'disabled' : ''}>
-                        <span class="icon"><i class="fa-solid fa-chevron-left"></i></span><span>Régebbi</span>
+                        <span class="icon"><i class="fa-solid fa-chevron-left"></i></span><span class="btn-text">Régebbi</span>
                     </button>
-                    <h3 class="title is-5 mb-0 has-text-info">${localDisplayedSemester || 'Ismeretlen félév'}</h3>
+                    <h3 class="title is-5 mb-0 has-text-info subj-semester-title">${localDisplayedSemester || 'Ismeretlen félév'}</h3>
                     <button class="button is-small" id="sem-next-btn" ${!hasNext ? 'disabled' : ''}>
-                        <span>Újabb</span><span class="icon"><i class="fa-solid fa-chevron-right"></i></span>
+                        <span class="btn-text">Újabb</span><span class="icon"><i class="fa-solid fa-chevron-right"></i></span>
                     </button>
                 </div>
 
-                <div class="columns is-multiline">
+                <div class="columns is-multiline subj-cards-container">
                     ${subjectsHtml}
                 </div>
             </div>
 
-            <div class="dash-right">
+            <!-- JOBB OSZLOP (Gombok, Statisztika) -->
+            <div class="dash-right subj-sidebar-column">
                 <div class="buttons mb-4">
                     <button class="button is-link is-light is-fullwidth" id="dash-btn-add-sub">
                         <i class="fa-solid fa-plus mr-2"></i> Új Tárgy felvétele
                     </button>
                 </div>
                 
-                <div class="box p-4 mb-4" style="border: none; box-shadow: none; background-color: var(--bulma-scheme-main-bis);">
+                <div class="box p-4 mb-4 subj-stat-box-flat">
                     <div class="is-flex is-justify-content-space-between mb-1">
                         <span class="is-size-7 has-text-weight-bold has-text-info is-uppercase">Félév haladása</span>
                         <span class="is-size-7 has-text-weight-bold has-text-info">${currentWeek}. Hét (${felevSzazalek}%)</span>
@@ -111,7 +122,7 @@ export async function renderSubjects(container) {
                     <progress class="progress is-info is-small mb-0" value="${felevSzazalek}" max="100">${felevSzazalek}%</progress>
                 </div>
 
-                <div class="box p-4 mb-4" style="border: 1px solid var(--bulma-border); box-shadow: none;">
+                <div class="box p-4 mb-4 subj-stat-box-solid">
                     <h3 class="title is-6 has-text-grey mb-3">Félév Statisztika</h3>
                     <div class="is-flex is-justify-content-space-between mb-2">
                         <span class="has-text-weight-semibold">Tárgyak száma:</span>
@@ -127,16 +138,19 @@ export async function renderSubjects(container) {
                     </div>
                 </div>
 
-                <div class="box p-4" style="border: 1px dashed var(--bulma-border); box-shadow: none; background: transparent;">
-                    <div class="has-text-centered py-3">
-                        <span class="icon is-large has-text-grey-light mb-2"><i class="fa-solid fa-list-check fa-2x"></i></span>
-                        <h3 class="title is-6 has-text-grey mb-1">Napi Teendők</h3>
-                        <p class="is-size-7 has-text-grey">Hamarosan érkezik...</p>
+                <div class="box p-4 subj-stat-box-dashed">
+                    <div id="sidebar-todo-widget">
+                        <div class="has-text-centered py-3">
+                            <div class="loader is-loading mx-auto"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     `;
+
+    // Teendők Widget Inicializálása
+    renderSidebarTodosWidget();
 
     // 4. Eseménykezelők bekötése
     document.getElementById('dash-btn-add-sub')?.addEventListener('click', (e) => { 

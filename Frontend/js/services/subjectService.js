@@ -1,8 +1,8 @@
 // js/subjects.js
-import { state } from "./state.js";
-import { escapeHTML, apiFetch } from "./api.js";
-import { getCurrentSemesterString, getSemesterFromDate } from "./sync.js";
-import { updateDashboardStats, showToast, updateCharCount } from "./ui.js";
+import { state } from "../core/state.js";
+import { escapeHTML, apiFetch } from "../core/api.js";
+import { getCurrentSemesterString, getSemesterFromDate } from "./syncService.js";
+import { updateDashboardStats, showToast, updateCharCount } from "../core/ui.js";
 
 export async function fetchSubjects() {
     try {   

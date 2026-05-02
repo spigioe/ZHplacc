@@ -1,7 +1,7 @@
 // js/settings.js
-import { state } from "./state.js";
-import { apiFetch, fetchUserProfile } from "./api.js";
-import { showToast, addFrylabsToggle, updateDashboardStats } from "./ui.js";
+import { state } from "../core/state.js";
+import { apiFetch, fetchUserProfile } from "../core/api.js";
+import { showToast, updateDashboardStats } from "../core/ui.js";
 
 // ============================================================================
 // MODÁL ÉS FÜLEK KEZELÉSE
@@ -97,7 +97,6 @@ export function refreshSettingsInPage() {
     if (semLength) semLength.value = state.appSettings.semesterLength || 14;
     if (icsInput) icsInput.value = state.appSettings.icsUrl || "";
     if (offsetInput) offsetInput.value = state.appSettings.weekOffset || 0;
-    if (state.appSettings.isFrylabsUnlocked) addFrylabsToggle();
 }
 
 export async function saveSettings() {

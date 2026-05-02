@@ -4,27 +4,33 @@
 // 1. IMPORTOK
 // ==========================================
 
-// Globális Állapot
 import { state } from './state.js';
 
-// Oldalak (Routing)
-import { renderDashboard } from './pages/dashboard.js';
-import { renderTimetable } from './pages/timetable.js';
-import { renderSubjects } from './pages/subjects.js';
-import { renderAssessments } from './pages/assessments.js';
-import { renderTodos } from './pages/todos.js';
+// ---> 1. MODÁLOK KOMPONENSÉNEK IMPORTÁLÁSA <---
+import { injectModals } from '../components/modals.js';
 
-// API és Rendszer
-import { logout, fetchUserProfile, escapeHTML} from './api.js';
+import { renderDashboard } from '../pages/dashboard.js';
+import { renderTimetable } from '../pages/timetable.js';
+import { renderSubjects } from '../pages/subjects.js';
+import { renderAssessments } from '../pages/assessments.js';
+import { renderTodos } from '../pages/todos.js';
+
+import { 
+    logout, 
+    fetchUserProfile, 
+    escapeHTML
+} from './api.js';
+
 import { 
     startNeptunSync, 
     initThemeToggle, 
-    toggleTheme, 
+    toggleTheme,
     initAutoWeekCalculation, 
     closeSyncProgressModal,
     closeMissingLinkModal,
     goToSettingsFromMissingLink
-} from './sync.js';
+} from '../services/syncService.js';
+
 import { 
     fetchSettings, 
     openSettingsModal, 
@@ -34,7 +40,7 @@ import {
     openClearDbModal,
     closeClearDbModal,
     executeClearDb
-} from './settings.js';
+} from '../services/settingService.js';
 
 // Modulok és Modál kezelők
 import { 
@@ -46,24 +52,24 @@ import {
     deleteCustomClass, 
     routeToZhAddFromClass,
     saveClassDetails
-} from './class.js';
+} from '../services/classService.js';
 import { 
     fetchSubjects as fetchDbSubjects, 
     closeAddSubjectModal, 
     closeViewSubjectModal 
-} from './subjects.js';
+} from '../services/subjectService.js';
 import { 
     fetchZhs, 
     closeAddZhModal, 
     submitZh, 
     closeViewZhModal 
-} from './zarthelyik.js';
+} from '../services/zarthelyiService.js';
 import { 
     fetchExams, 
     closeAddExamModal, 
     submitExam, 
     closeViewExamModal 
-} from './exams.js';
+} from '../services/examService.js';
 
 // ==========================================
 // 2. ROUTING (SPA NAVIGÁCIÓ)
@@ -115,6 +121,12 @@ function setupGlobalEventListeners() {
     // --- ALAP NAVIGÁCIÓ ÉS BEÁLLÍTÁSOK ---
     document.getElementById("logout-btn")?.addEventListener("click", logout);
     document.getElementById("nav-settings-btn")?.addEventListener("click", openSettingsModal);
+    document.getElementById("mobile-settings-btn")?.addEventListener("click", openSettingsModal);
+    document.getElementById("mobile-logout-btn")?.addEventListener("click", logout);
+
+    // MOBIL SETTINGS GOMB ESEMÉNYKEZELŐJE (ÚJ)
+    document.getElementById("mobile-settings-btn")?.addEventListener("click", openSettingsModal);
+    
     document.getElementById("nav-sync-btn")?.addEventListener("click", startNeptunSync);
     document.getElementById("theme-toggle")?.addEventListener("click", toggleTheme);
 
@@ -130,6 +142,7 @@ function setupGlobalEventListeners() {
     document.getElementById("clear-db-confirm-btn")?.addEventListener("click", executeClearDb);
     document.getElementById("missing-link-cancel-btn")?.addEventListener("click", closeMissingLinkModal);
     document.getElementById("missing-link-settings-btn")?.addEventListener("click", goToSettingsFromMissingLink);
+    
     // --- EGYÉNI ÓRA FELVÉTELE MODÁL ---
     document.getElementById("add-class-close-btn")?.addEventListener("click", closeAddClassModal);
     document.getElementById("add-class-cancel-btn-bottom")?.addEventListener("click", closeAddClassModal);
@@ -138,25 +151,43 @@ function setupGlobalEventListeners() {
         submitCustomClass();
     });
 
+    const settingsTabs = document.querySelectorAll('#settings-tabs li');
+        settingsTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 1. Levesszük az aktív stílust minden fülről
+                settingsTabs.forEach(t => t.classList.remove('is-active'));
+                // 2. Elrejtjük mindkét tartalom dobozt
+                document.getElementById('settings-tab-system')?.classList.add('is-hidden');
+                document.getElementById('settings-tab-account')?.classList.add('is-hidden');
+                
+                // 3. Rátesszük az aktív stílust a kattintottra, és megjelenítjük a hozzá tartozó dobozt
+                tab.classList.add('is-active');
+                const targetId = tab.getAttribute('data-target');
+                document.getElementById(targetId)?.classList.remove('is-hidden');
+            });
+        });
+
     // ÚJ: Esemény típusa fülek kapcsolgatása (Tárgy vs Egyéni)
     const classToggleTabs = document.querySelectorAll('#add-class-type-toggle li');
     const dropdownContainer = document.getElementById('add-class-subject-container');
     const customContainer = document.getElementById('add-class-custom-container');
 
-    classToggleTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            classToggleTabs.forEach(t => t.classList.remove('is-active'));
-            tab.classList.add('is-active');
+    if (classToggleTabs.length > 0) {
+        classToggleTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                classToggleTabs.forEach(t => t.classList.remove('is-active'));
+                tab.classList.add('is-active');
 
-            if (tab.dataset.type === 'subject') {
-                dropdownContainer.classList.remove('is-hidden');
-                customContainer.classList.add('is-hidden');
-            } else {
-                dropdownContainer.classList.add('is-hidden');
-                customContainer.classList.remove('is-hidden');
-            }
+                if (tab.dataset.type === 'subject') {
+                    dropdownContainer.classList.remove('is-hidden');
+                    customContainer.classList.add('is-hidden');
+                } else {
+                    dropdownContainer.classList.add('is-hidden');
+                    customContainer.classList.remove('is-hidden');
+                }
+            });
         });
-    });
+    }
 
     // --- ÓRA RÉSZLETEK MODÁL ---
     document.getElementById("view-class-close-btn")?.addEventListener("click", closeViewClassModal);
@@ -183,20 +214,17 @@ function setupGlobalEventListeners() {
     // --- TANTÁRGY MODÁLOK ---
     document.getElementById("add-sub-cancel-btn")?.addEventListener("click", closeAddSubjectModal);
     document.getElementById("add-sub-cancel-btn-bottom")?.addEventListener("click", closeAddSubjectModal);
-    
     document.getElementById("view-sub-close-btn")?.addEventListener("click", closeViewSubjectModal);
 
     // --- ZH MODÁLOK ---
     document.getElementById("add-zh-cancel-btn")?.addEventListener("click", closeAddZhModal);
     document.getElementById("zh-modal-submit-btn")?.addEventListener("click", (e) => { e.preventDefault(); submitZh(); });
-    
     document.getElementById("view-zh-cancel-btn")?.addEventListener("click", closeViewZhModal);
 
     // --- VIZSGA MODÁLOK ---
     document.getElementById("add-exam-close")?.addEventListener("click", closeAddExamModal);
     document.getElementById("add-exam-cancel-btn")?.addEventListener("click", closeAddExamModal);
     document.getElementById("exam-modal-submit-btn")?.addEventListener("click", (e) => { e.preventDefault(); submitExam(); });
-    
     document.getElementById("view-exam-cancel-btn")?.addEventListener("click", closeViewExamModal);
 }
 
@@ -212,7 +240,13 @@ async function initApp() {
     }
 
     try {
+        // ---> 2. MODÁLOK INJEKTÁLÁSA A DOM-BA <---
+        // Ezt MINDEN ELŐTT meg kell hívni, hogy a HTML elemek már létezzenek a memóriában!
+        injectModals();
+        
         initThemeToggle();
+        
+        // Csak ez után köthetjük rá az eseménykezelőket!
         setupGlobalEventListeners();
         
         await fetchSettings();
@@ -225,7 +259,7 @@ async function initApp() {
                 // Generálunk egy monogramot (Pl: "Kiss Péter" -> "KP")
                 const initials = userProfile.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'ZH';
                 
-                // ÚJ: Profilkép HTML generálása (Kép vagy Monogram)
+                // Profilkép HTML generálása (Kép vagy Monogram)
                 let avatarHtml = '';
                 if (userProfile.profilePictureUrl && userProfile.profilePictureUrl.length > 50) {
                     avatarHtml = `<img src="${userProfile.profilePictureUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
@@ -253,6 +287,12 @@ async function initApp() {
                 `;
                 document.getElementById("logout-btn")?.addEventListener("click", logout);
             }
+            
+            // Profil infók betöltése a mobilos Sidebarba is! (Mivel mobilon el van rejtve a .user-profile-card)
+            const mobileNameDisp = document.getElementById('user-display-name');
+            const mobileEmailDisp = document.getElementById('user-display-email');
+            if(mobileNameDisp) mobileNameDisp.textContent = userProfile.fullName;
+            if(mobileEmailDisp) mobileEmailDisp.textContent = userProfile.email;
         }
         // -------------------------------------
         
@@ -270,6 +310,7 @@ async function initApp() {
         console.error("Kritikus hiba az induláskor:", e);
     }
 }
+
 // ==========================================
 // GLOBÁLIS MODÁL BEZÁRÁS (Kattintás a háttérre)
 // ==========================================
