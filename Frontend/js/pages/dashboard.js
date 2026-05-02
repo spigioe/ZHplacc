@@ -2,7 +2,7 @@
 import { state } from '../state.js';
 import { escapeHTML } from '../api.js';
 import { calculateCurrentWeek } from '../ui.js';
-
+import { renderSidebarTodosWidget } from './todos.js';
 import { openAddZhModal, openViewZhModal, deleteZh } from '../zarthelyik.js';
 import { openAddExamModal, openViewExamModal, deleteExam } from '../exams.js';
 

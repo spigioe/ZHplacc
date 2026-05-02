@@ -119,7 +119,7 @@ export async function renderTodos(container) {
             </div>
         </div>
     `;
-
+    renderSidebarTodosWidget();
     // 4. Jobb oldali sáv gombjainak eseménykezelői (Modálok megnyitása a UI.js nélkül!)
     document.getElementById('dash-btn-add-zh')?.addEventListener('click', (e) => { e.preventDefault(); openAddZhModal(); });
     document.getElementById('dash-btn-add-exam')?.addEventListener('click', (e) => { e.preventDefault(); openAddExamModal(); });
@@ -146,24 +146,36 @@ export async function renderTodos(container) {
     await loadAndRenderTodos();
 
     // 6. Új feladat mentése
-    document.getElementById("add-todo-form").addEventListener("submit", async (e) => {
+    document.getElementById("add-todo-form").onsubmit = async (e) => {
         e.preventDefault();
+        
         const titleInput = document.getElementById("new-todo-title");
         const dateInput = document.getElementById("new-todo-date");
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        
+        // Gomb letiltása, amíg tölt, hogy ne lehessen kétszer rákattintani
+        submitBtn.classList.add('is-loading');
+
         const payload = { 
             title: titleInput.value, 
             dueDate: dateInput.value ? new Date(dateInput.value).toISOString() : null 
         };
 
-        const res = await apiFetch("/todos", { method: "POST", body: JSON.stringify(payload) });
-        if (res.ok) { 
-            titleInput.value = ""; 
-            dateInput.value = ""; 
-            await loadAndRenderTodos(); 
-        } else {
-            showToast("Hiba a mentés során!", "is-danger");
+        try {
+            const res = await apiFetch("/todos", { method: "POST", body: JSON.stringify(payload) });
+            if (res.ok) { 
+                titleInput.value = ""; 
+                dateInput.value = ""; 
+                await loadAndRenderTodos(); 
+            } else {
+                showToast("Hiba a mentés során!", "is-danger");
+            }
+        } catch(err) {
+             showToast("Hálózati hiba!", "is-danger");
+        } finally {
+            submitBtn.classList.remove('is-loading');
         }
-    });
+    };
 }
 
 // ==========================================
