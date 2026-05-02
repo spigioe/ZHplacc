@@ -5,7 +5,6 @@ import { calculateCurrentWeek } from '../ui.js';
 import { renderSidebarTodosWidget, renderTodos } from './todos.js';
 import { openAddZhModal, openViewZhModal, deleteZh } from '../zarthelyik.js';
 import { openAddExamModal, openViewExamModal, deleteExam } from '../exams.js';
-import { renderSidebarTodosWidget } from './todos.js';
 
 export async function renderDashboard(container) {
     const now = new Date();
