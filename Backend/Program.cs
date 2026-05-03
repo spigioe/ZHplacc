@@ -72,14 +72,57 @@ int GetUserId(ClaimsPrincipal user)
 app.MapPost("/api/auth/register", async (UserRegisterDto dto) =>
 {
     using var connection = new MySqlConnection(connectionString);
-    var existingUser = await connection.QueryFirstOrDefaultAsync<int>("SELECT id FROM Users WHERE email = @Email", new { Email = dto.Email });
-    if (existingUser > 0) return Results.BadRequest(new { message = "Ez az e-mail cím már foglalt!" });
+    await connection.OpenAsync(); // Megnyitjuk a kapcsolatot a tranzakcióhoz
+    using var transaction = await connection.BeginTransactionAsync(); // Tranzakció kezdése
 
-    string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-    var sql = "INSERT INTO Users (name, email, password_hash) VALUES (@Name, @Email, @Hash)";
-    await connection.ExecuteAsync(sql, new { Name = dto.Name, Email = dto.Email, Hash = passwordHash });
+    try
+    {
+        // 1. Ellenőrizzük, létezik-e már az email
+        var existingUser = await connection.QueryFirstOrDefaultAsync<int>(
+            "SELECT id FROM Users WHERE email = @Email", 
+            new { Email = dto.Email }, 
+            transaction
+        );
+        
+        if (existingUser > 0) 
+            return Results.BadRequest(new { message = "Ez az e-mail cím már foglalt!" });
 
-    return Results.Ok(new { message = "Sikeres regisztráció!" });
+        // 2. Felhasználó beszúrása és az új ID lekérdezése egy lépésben
+        string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+        var sqlUser = @"
+            INSERT INTO Users (name, email, password_hash) 
+            VALUES (@Name, @Email, @Hash);
+            SELECT LAST_INSERT_ID();"; // Visszaadja a frissen létrehozott User ID-ját
+            
+        int newUserId = await connection.QuerySingleAsync<int>(
+            sqlUser, 
+            new { Name = dto.Name, Email = dto.Email, Hash = passwordHash }, 
+            transaction
+        );
+
+        // 3. Alapértelmezett beállítások beszúrása az új felhasználónak
+        var sqlSettings = @"
+            INSERT INTO Settings (user_id, semester_length, ics_url, week_offset, is_frylabs_unlocked, is_first_login) 
+            VALUES (@UserId, 14, '', 0, FALSE, TRUE)";
+            
+        await connection.ExecuteAsync(
+            sqlSettings, 
+            new { UserId = newUserId }, 
+            transaction
+        );
+
+        // Ha minden sikeres, véglegesítjük a tranzakciót!
+        await transaction.CommitAsync();
+
+        return Results.Ok(new { message = "Sikeres regisztráció!" });
+    }
+    catch (Exception ex)
+    {
+        // Ha bármilyen hiba történik, mindent visszavonunk!
+        await transaction.RollbackAsync();
+        Console.WriteLine($"Regisztrációs hiba: {ex.Message}");
+        return Results.Problem("Belső hiba történt a regisztráció során.");
+    }
 });
 
 app.MapPost("/api/auth/login", async (UserLoginDto dto) =>
