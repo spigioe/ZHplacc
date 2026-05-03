@@ -1,9 +1,8 @@
 // js/class.js
 import { state } from "../core/state.js";
 import { logout, escapeHTML, apiFetch } from "../core/api.js";
-import { fetchSettings, openSettingsModal, closeSettingsModal, refreshSettingsInPage, saveSettings, resetSettings } from "./settingService.js";
 import { fetchSubjects, openAddSubjectModal, openEditSubjectModal, openViewSubjectModal, closeViewSubjectModal, closeAddSubjectModal, submitSubject, saveEditedSubject, deleteSubject } from "./subjectService.js";
-import { openImportModal, closeImportModal, closeSyncProgressModal, startNeptunSync, handleIcsUpload, parseIcsToObjects, processAndUploadIcs, getWeekBoundaries, getCurrentSemesterString, changeSubjectSemester, toggleSubjectSemesterFilter, getSemesterFromDate, initThemeToggle, toggleTheme, getAutoSemesterStart, openMissingLinkModal, closeMissingLinkModal, goToSettingsFromMissingLink, onDateChangeHelper, initAutoWeekCalculation } from "./syncService.js";
+import { openImportModal, closeImportModal, closeSyncProgressModal, startNeptunSync, handleIcsUpload, parseIcsToObjects, processAndUploadIcs, getWeekBoundaries, getCurrentSemesterString, getSemesterFromDate, initThemeToggle, toggleTheme, getAutoSemesterStart, openMissingLinkModal, closeMissingLinkModal, goToSettingsFromMissingLink, initAutoWeekCalculation } from "./syncService.js";
 import { showToast, updateDashboardStats, calculateCurrentWeek, updateCurrentWeekBox, changeDisplayedWeek, renderWeeklyCalendar, updateCharCount } from "../core/ui.js";
 import { fetchZhs, openViewZhModal, closeViewZhModal, openAddZhModal, closeAddZhModal, openEditZhModal, calculateZhWeek, submitZh, deleteZh} from "./zarthelyiService.js";
 

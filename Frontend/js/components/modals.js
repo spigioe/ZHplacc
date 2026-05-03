@@ -6,159 +6,6 @@ export function injectModals() {
 
     container.innerHTML = `
 <!-- ========================================== -->
-<!-- 1. BEÁLLÍTÁSOK MODAL -->
-<!-- ========================================== -->
-<div class="modal" id="settings-modal">
-    <div class="modal-background" id="settings-bg"></div>
-    <div class="modal-card">
-        <header class="modal-card-head">
-            <p class="modal-card-title has-text-weight-bold">
-                <i class="fa-solid fa-gear has-text-grey-light mr-2"></i> Beállítások
-            </p>
-            <button class="delete" aria-label="close" id="settings-close"></button>
-        </header>
-        
-        <div class="tabs is-centered is-boxed is-fullwidth mb-0 pt-3" style="background-color: var(--bulma-background-light);">
-            <ul id="settings-tabs">
-                <li class="is-active" data-target="settings-tab-system">
-                    <a><span class="icon is-small"><i class="fa-solid fa-sliders"></i></span><span>Rendszer</span></a>
-                </li>
-                <li data-target="settings-tab-account">
-                    <a><span class="icon is-small"><i class="fa-solid fa-user"></i></span><span>Fiókom</span></a>
-                </li>
-            </ul>
-        </div>
-
-        <section class="modal-card-body p-0" style="overflow-x: hidden;">
-            <!-- RENDSZER FÜL -->
-            <div id="settings-tab-system" class="p-5">
-                <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
-                    <h3 class="title is-6 has-text-grey is-uppercase mb-4" style="letter-spacing: 1px; font-size: 0.75rem;">
-                        <i class="fa-solid fa-calendar-days mr-2"></i> Oktatási Időszak
-                    </h3>
-                    <div class="columns is-mobile mb-0">
-                        <div class="column is-half field mb-0">
-                            <label class="label is-small">Hét eltolás</label>
-                            <div class="control">
-                                <input class="input has-text-centered has-text-weight-bold" type="number" id="setting-week-offset" value="0">
-                            </div>
-                        </div>
-                        <div class="column is-half field mb-0">
-                            <label class="label is-small">Félév hossza (Hét)</label>
-                            <div class="control">
-                                <input class="input has-text-centered has-text-weight-bold" type="number" id="setting-semester-length" value="14">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="box is-shadowless mb-6" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
-                    <h3 class="title is-6 has-text-grey is-uppercase mb-4" style="letter-spacing: 1px; font-size: 0.75rem;">
-                        <i class="fa-solid fa-cloud-arrow-down mr-2"></i> Neptun Szinkronizáció
-                    </h3>
-                    <div class="field">
-                        <label class="label is-small">Naptár (ICS) Link</label>
-                        <div class="control has-icons-left">
-                            <input class="input" type="text" id="setting-neptun-ics" placeholder="https://neptun.hu/...">
-                            <span class="icon is-small is-left has-text-grey"><i class="fa-solid fa-link"></i></span>
-                        </div>
-                    </div>
-                    <button class="button is-info is-light is-fullwidth has-text-weight-bold mt-4" id="sync-now-btn">
-                        <i class="fa-solid fa-rotate mr-2"></i> Szinkronizálás most
-                    </button>
-                </div>
-
-                <div class="box is-shadowless mt-auto" style="border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05);">
-                    <h3 class="title is-6 has-text-danger is-uppercase mb-4" style="letter-spacing: 1px; font-size: 0.75rem;">
-                        <i class="fa-solid fa-triangle-exclamation mr-2"></i> Veszélyzóna
-                    </h3>
-                    <div class="buttons is-flex-direction-column">
-                        <button class="button is-warning is-light is-fullwidth mb-3" id="reset-settings-btn" style="justify-content: flex-start;">
-                            <span class="icon"><i class="fa-solid fa-rotate-left"></i></span><span>Alapértelmezett beállítások</span>
-                        </button>
-                        <button class="button is-danger is-fullwidth has-text-weight-bold" id="clear-all-btn" style="justify-content: flex-start;">
-                            <span class="icon"><i class="fa-solid fa-trash-can"></i></span><span>ÖSSZES ADAT TÖRLÉSE</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- FIÓKOM FÜL -->
-            <div id="settings-tab-account" class="p-5 is-hidden">
-                <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
-                    <h3 class="title is-6 has-text-grey is-uppercase mb-4" style="letter-spacing: 1px; font-size: 0.75rem;">
-                        <i class="fa-solid fa-address-card mr-2"></i> Személyes Adatok
-                    </h3>
-                    
-                    <div class="is-flex is-align-items-center mb-4 pb-4" style="border-bottom: 1px solid var(--bulma-border);">
-                        <div class="mr-4" style="position: relative; width: 64px; height: 64px; border-radius: 50%; overflow: hidden; background-color: var(--bulma-border); flex-shrink: 0;">
-                            <img id="setting-profile-pic-preview" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
-                            <div id="setting-profile-pic-placeholder" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: var(--bulma-link); color: white; font-weight: bold; font-size: 1.5rem;">ZH</div>
-                        </div>
-                        <div class="is-flex-grow-1">
-                            <div class="file is-small is-info is-light">
-                                <label class="file-label">
-                                    <input class="file-input" type="file" id="setting-profile-pic-upload" accept="image/png, image/jpeg">
-                                    <span class="file-cta">
-                                        <span class="file-icon"><i class="fa-solid fa-upload"></i></span>
-                                        <span class="file-label">Kép módosítása...</span>
-                                    </span>
-                                </label>
-                            </div>
-                            <input type="hidden" id="setting-profile-pic-base64">
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label class="label is-small">Teljes Név</label>
-                        <div class="control has-icons-left">
-                            <input class="input has-text-weight-semibold" type="text" id="setting-account-name" placeholder="Pl.: Kiss Péter">
-                            <span class="icon is-small is-left"><i class="fa-solid fa-user"></i></span>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <label class="label is-small">Email cím</label>
-                        <div class="control has-icons-left">
-                            <input class="input" type="email" id="setting-account-email">
-                            <span class="icon is-small is-left"><i class="fa-solid fa-envelope"></i></span>
-                        </div>
-                    </div>
-                    <button class="button is-link is-light is-fullwidth has-text-weight-bold mt-4" id="save-profile-btn">Adatok frissítése</button>
-                </div>
-
-                <div class="box is-shadowless mb-2" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
-                    <h3 class="title is-6 has-text-grey is-uppercase mb-4" style="letter-spacing: 1px; font-size: 0.75rem;">
-                        <i class="fa-solid fa-lock mr-2"></i> Jelszó módosítása
-                    </h3>
-                    <div class="field">
-                        <label class="label is-small">Jelenlegi jelszó</label>
-                        <div class="control has-icons-left">
-                            <input class="input" type="password" id="setting-old-password" placeholder="******">
-                            <span class="icon is-small is-left"><i class="fa-solid fa-key"></i></span>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <label class="label is-small">Új jelszó</label>
-                        <div class="control has-icons-left">
-                            <input class="input" type="password" id="setting-new-password" placeholder="Legalább 6 karakter">
-                            <span class="icon is-small is-left"><i class="fa-solid fa-asterisk"></i></span>
-                        </div>
-                    </div>
-                    <button class="button is-warning is-light is-fullwidth has-text-weight-bold mt-4" id="save-password-btn">Jelszó megváltoztatása</button>
-                </div>
-            </div>
-        </section>
-        
-        <footer class="modal-card-foot is-flex is-justify-content-space-between is-align-items-center">
-            <button id="settings-cancel-btn" class="button is-ghost has-text-grey">Mégse</button>
-            <button id="save-settings-btn" class="button is-link is-rounded px-6 has-text-weight-bold">
-                <span class="icon mr-1"><i class="fa-solid fa-check"></i></span><span>Rendszer Mentése</span>
-            </button>
-        </footer>
-    </div>
-</div>
-
-<!-- ========================================== -->
 <!-- 2. ÚJ ZÁRTHELYI (ZH) MODAL -->
 <!-- ========================================== -->
 <div class="modal" id="add-zh-modal">
@@ -555,5 +402,45 @@ export function injectModals() {
         </footer>
     </div>
 </div>
-    `;
+    
+<!-- ========================================== -->
+<!-- SZINKRONIZÁLÁSI FOLYAMAT MODAL -->
+<!-- ========================================== -->
+<div class="modal" id="sync-progress-modal">
+    <div class="modal-background"></div>
+    <div class="modal-content" style="max-width: 400px; width: 90%;">
+        <div class="box has-text-centered py-6 px-5" style="border-radius: 12px; border: 1px solid var(--bulma-border);">
+            <h3 class="title is-4 has-text-link mb-5" id="sync-modal-title">Szinkronizálás...</h3>
+            <div id="sync-loading-spinner" class="loader is-loading is-large mx-auto mb-5" style="height: 3em; width: 3em;"></div>
+            <p id="sync-modal-message" class="has-text-grey is-size-6 mb-5">A Neptun adatok letöltése folyamatban van. Kérlek, várj...</p>
+            <button class="button is-link is-hidden px-6 has-text-weight-bold" id="sync-modal-close-btn" style="border-radius: 8px;">Rendben</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- HIÁNYZÓ ICS LINK MODAL -->
+<!-- ========================================== -->
+<div class="modal" id="missing-link-modal">
+    <div class="modal-background"></div>
+    <div class="modal-content" style="max-width: 450px; width: 90%;">
+        <div class="box p-5" style="border-radius: 12px; border: 1px solid var(--bulma-border);">
+            <div class="is-flex is-align-items-center mb-4">
+                <span class="icon is-large has-text-warning-dark mr-3"><i class="fa-solid fa-link-slash fa-2x"></i></span>
+                <h3 class="title is-4 m-0 has-text-warning-dark">Hiányzó Link</h3>
+            </div>
+            <p class="mb-3 has-text-weight-medium">Nem adtál még meg Neptun naptár (ICS) linket, így nincs mit szinkronizálni!</p>
+            <p class="is-size-7 has-text-grey mb-5">Kérlek, navigálj a beállításokhoz, és illeszd be a Neptunból kimásolt URL-t.</p>
+            
+            <div class="is-flex is-justify-content-flex-end is-align-items-center" style="gap: 10px;">
+                <button class="button is-ghost has-text-grey" id="missing-link-cancel-btn">Mégse</button>
+                <button class="button is-warning has-text-weight-bold" id="missing-link-settings-btn" style="border-radius: 8px;">
+                    <i class="fa-solid fa-gear mr-2"></i> Beállítások
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+`;
 }

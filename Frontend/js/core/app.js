@@ -14,6 +14,7 @@ import { renderTimetable } from '../pages/timetable.js';
 import { renderSubjects } from '../pages/subjects.js';
 import { renderAssessments } from '../pages/assessments.js';
 import { renderTodos } from '../pages/todos.js';
+import { renderSettings } from '../pages/settings.js';
 
 import { 
     logout, 
@@ -32,11 +33,6 @@ import {
 } from '../services/syncService.js';
 
 import { 
-    fetchSettings, 
-    openSettingsModal, 
-    closeSettingsModal, 
-    saveSettings, 
-    resetSettings, 
     openClearDbModal,
     closeClearDbModal,
     executeClearDb
@@ -81,7 +77,8 @@ const routes = {
     'timetable': renderTimetable,
     'subjects': renderSubjects,
     'assessments': renderAssessments,
-    'todos': renderTodos
+    'todos': renderTodos,
+    'settings': renderSettings
 };
 
 const routerView = document.getElementById('router-view');
@@ -112,7 +109,6 @@ async function navigate() {
     }
 }
 
-
 // ==========================================
 // 3. GLOBÁLIS ESEMÉNYKEZELŐK
 // ==========================================
@@ -120,22 +116,22 @@ async function navigate() {
 function setupGlobalEventListeners() {
     // --- ALAP NAVIGÁCIÓ ÉS BEÁLLÍTÁSOK ---
     document.getElementById("logout-btn")?.addEventListener("click", logout);
-    document.getElementById("nav-settings-btn")?.addEventListener("click", openSettingsModal);
-    document.getElementById("mobile-settings-btn")?.addEventListener("click", openSettingsModal);
     document.getElementById("mobile-logout-btn")?.addEventListener("click", logout);
 
-    // MOBIL SETTINGS GOMB ESEMÉNYKEZELŐJE (ÚJ)
-    document.getElementById("mobile-settings-btn")?.addEventListener("click", openSettingsModal);
+    // BEÁLLÍTÁSOK ALOLDALRA NAVIGÁLÁS
+    document.getElementById("nav-settings-btn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        window.location.hash = '#settings';
+    });
+    document.getElementById("mobile-settings-btn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        window.location.hash = '#settings';
+    });
     
     document.getElementById("nav-sync-btn")?.addEventListener("click", startNeptunSync);
     document.getElementById("theme-toggle")?.addEventListener("click", toggleTheme);
 
-    document.getElementById("settings-close")?.addEventListener("click", closeSettingsModal);
-    document.getElementById("settings-cancel-btn")?.addEventListener("click", closeSettingsModal);
-    document.getElementById("save-settings-btn")?.addEventListener("click", saveSettings);
-    document.getElementById("reset-settings-btn")?.addEventListener("click", resetSettings);
-    document.getElementById("clear-all-btn")?.addEventListener("click", openClearDbModal);
-    document.getElementById("sync-now-btn")?.addEventListener("click", startNeptunSync);
+    // Különféle modálok (Sync, Törlés, stb.) eseményei
     document.getElementById("sync-modal-close-btn")?.addEventListener("click", closeSyncProgressModal);
     document.getElementById("clear-db-close-btn")?.addEventListener("click", closeClearDbModal);
     document.getElementById("clear-db-cancel-btn")?.addEventListener("click", closeClearDbModal);
@@ -151,23 +147,7 @@ function setupGlobalEventListeners() {
         submitCustomClass();
     });
 
-    const settingsTabs = document.querySelectorAll('#settings-tabs li');
-        settingsTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // 1. Levesszük az aktív stílust minden fülről
-                settingsTabs.forEach(t => t.classList.remove('is-active'));
-                // 2. Elrejtjük mindkét tartalom dobozt
-                document.getElementById('settings-tab-system')?.classList.add('is-hidden');
-                document.getElementById('settings-tab-account')?.classList.add('is-hidden');
-                
-                // 3. Rátesszük az aktív stílust a kattintottra, és megjelenítjük a hozzá tartozó dobozt
-                tab.classList.add('is-active');
-                const targetId = tab.getAttribute('data-target');
-                document.getElementById(targetId)?.classList.remove('is-hidden');
-            });
-        });
-
-    // ÚJ: Esemény típusa fülek kapcsolgatása (Tárgy vs Egyéni)
+    // Esemény típusa fülek kapcsolgatása (Tárgy vs Egyéni)
     const classToggleTabs = document.querySelectorAll('#add-class-type-toggle li');
     const dropdownContainer = document.getElementById('add-class-subject-container');
     const customContainer = document.getElementById('add-class-custom-container');
@@ -228,7 +208,6 @@ function setupGlobalEventListeners() {
     document.getElementById("view-exam-cancel-btn")?.addEventListener("click", closeViewExamModal);
 }
 
-
 // ==========================================
 // 4. ALKALMAZÁS INICIALIZÁLÁSA
 // ==========================================
@@ -249,7 +228,20 @@ async function initApp() {
         // Csak ez után köthetjük rá az eseménykezelőket!
         setupGlobalEventListeners();
         
-        await fetchSettings();
+        // Nem használjuk a fetchSettings-t a modál betöltéséhez az inicializáláskor, 
+        // hiszen az csak a Settings menüpont megnyitásakor történik meg a jövőben.
+        // A state.appSettings frissítése miatt viszont továbbra is kellhet:
+        try {
+            const setRes = await apiFetch(`/settings`);
+            if(setRes.ok) {
+                const s = await setRes.json();
+                state.appSettings = {
+                    semesterLength: s.semesterLength || 14,
+                    icsUrl: s.icsUrl || "",
+                    weekOffset: s.weekOffset || 0,
+                };
+            }
+        } catch(e) {}
 
         // --- FELHASZNÁLÓI PROFIL BETÖLTÉSE ---
         const userProfile = await fetchUserProfile();
