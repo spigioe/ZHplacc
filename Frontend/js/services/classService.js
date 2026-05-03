@@ -1,10 +1,9 @@
 // js/class.js
 import { state } from "../core/state.js";
-import { logout, escapeHTML, apiFetch } from "../core/api.js";
-import { fetchSubjects, openAddSubjectModal, openEditSubjectModal, openViewSubjectModal, closeViewSubjectModal, closeAddSubjectModal, submitSubject, saveEditedSubject, deleteSubject } from "./subjectService.js";
-import { openImportModal, closeImportModal, closeSyncProgressModal, startNeptunSync, handleIcsUpload, parseIcsToObjects, processAndUploadIcs, getWeekBoundaries, getCurrentSemesterString, getSemesterFromDate, initThemeToggle, toggleTheme, getAutoSemesterStart, openMissingLinkModal, closeMissingLinkModal, goToSettingsFromMissingLink, initAutoWeekCalculation } from "./syncService.js";
-import { showToast, updateDashboardStats, calculateCurrentWeek, updateCurrentWeekBox, changeDisplayedWeek, renderWeeklyCalendar, updateCharCount } from "../core/ui.js";
-import { fetchZhs, openViewZhModal, closeViewZhModal, openAddZhModal, closeAddZhModal, openEditZhModal, calculateZhWeek, submitZh, deleteZh} from "./zarthelyiService.js";
+import { escapeHTML, apiFetch } from "../core/api.js";
+import { getCurrentSemesterString } from "./syncService.js";
+import { showToast } from "../core/ui.js";
+import { openAddZhModal} from "./zarthelyiService.js";
 
 // --- ÓRA (ESEMÉNY) MEGTEKINTÉSE ---
 export function openViewClassModal(id) {

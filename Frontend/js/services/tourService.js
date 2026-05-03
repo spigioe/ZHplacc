@@ -1,15 +1,18 @@
 // js/services/tourService.js
+import { state } from '../core/state.js';
+import { apiFetch } from '../core/api.js';
 
 export function checkAndRunTour() {
-    // Ellenőrizzük a helyi tárhelyet, hogy lement-e már a körbevezetés
-    const tourDone = localStorage.getItem("platzh_tour_done");
-    if (!tourDone) {
+    // A localStorage helyett az adatbázisból betöltött értéket nézzük
+    // Ha esetleg nincs ilyen adat, a biztonság kedvéért fusson le (fallback)
+    const isFirst = state.appSettings ? state.appSettings.isFirstLogin : true;
+    
+    if (isFirst) {
         startTour();
     }
 }
 
 function startTour() {
-    // A Varázsló lépései
     const steps = [
         {
             title: "Üdvözlünk a platZH-ban! 🎉",
@@ -40,7 +43,6 @@ function startTour() {
 
     let currentStep = 0;
 
-    // Létrehozzuk a Modál HTML-jét dinamikusan
     const modalHtml = `
         <div class="modal is-active" id="onboarding-tour-modal" style="z-index: 9999;">
             <div class="modal-background" style="background-color: rgba(0,0,0,0.8);"></div>
@@ -69,7 +71,6 @@ function startTour() {
         </div>
     `;
 
-    // Hozzáadjuk a DOM-hoz
     document.body.insertAdjacentHTML('beforeend', modalHtml);
 
     const modal = document.getElementById("onboarding-tour-modal");
@@ -97,10 +98,24 @@ function startTour() {
         }
     }
 
-    function finishTour() {
-        localStorage.setItem("platzh_tour_done", "true");
-        modal.remove(); // Eltávolítjuk a DOM-ból
-        window.location.hash = '#settings'; // Átdobjuk a beállításokba!
+    async function finishTour() {
+        // 1. Átállítjuk kliens oldalon, hogy ne fusson le többször
+        if (state.appSettings) {
+            state.appSettings.isFirstLogin = false;
+        }
+
+        // 2. Szinkronizáljuk a Backenddel (Mentjük a beállításokat)
+        try {
+            await apiFetch('/settings', {
+                method: 'POST',
+                body: JSON.stringify(state.appSettings)
+            });
+        } catch (error) {
+            console.error("Nem sikerült elmenteni az isFirstLogin-t az adatbázisba", error);
+        }
+
+        modal.remove(); 
+        window.location.hash = '#settings'; 
     }
 
     nextBtn.addEventListener("click", () => {

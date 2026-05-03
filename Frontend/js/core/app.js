@@ -273,6 +273,7 @@ async function initApp() {
                     semesterLength: s.semesterLength || 14,
                     icsUrl: s.icsUrl || "",
                     weekOffset: s.weekOffset || 0,
+                    isFirstLogin: s.isFirstLogin !== undefined ? s.isFirstLogin : true
                 };
             }
         } catch(e) {}

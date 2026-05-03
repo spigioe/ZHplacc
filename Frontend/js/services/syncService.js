@@ -40,7 +40,8 @@ export async function startNeptunSync() {
                         semesterLength: isNaN(semLen) ? 14 : semLen,
                         icsUrl: newLink,
                         weekOffset: isNaN(wOff) ? 0 : wOff,
-                        isFrylabsUnlocked: state.appSettings.isFrylabsUnlocked || false
+                        isFrylabsUnlocked: state.appSettings.isFrylabsUnlocked || false,
+                        isFirstLogin: state.appSettings.isFirstLogin || false
                     }) 
                 });
             } catch (e) {

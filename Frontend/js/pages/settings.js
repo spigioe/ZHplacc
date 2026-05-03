@@ -311,7 +311,8 @@ async function saveSystemSettings() {
             semesterLength: isNaN(semLen) ? 14 : semLen,
             icsUrl: document.getElementById("page-setting-neptun-ics").value || "",
             weekOffset: isNaN(wOff) ? 0 : wOff,
-            isFrylabsUnlocked: state.appSettings?.isFrylabsUnlocked || false
+            isFrylabsUnlocked: state.appSettings?.isFrylabsUnlocked || false,
+            isFirstLogin: state.appSettings?.isFirstLogin || false
         };
         
         const res = await apiFetch(`/settings`, { method: 'POST', body: JSON.stringify(payload) });

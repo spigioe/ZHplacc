@@ -379,6 +379,7 @@ app.MapDelete("/api/orarend/custom/{id:int}", async (ClaimsPrincipal user, int i
 }).RequireAuthorization();
 
 // --- BEÁLLÍTÁSOK ---
+
 app.MapGet("/api/settings", async (ClaimsPrincipal user) =>
 {
     int userId = GetUserId(user);
@@ -391,8 +392,27 @@ app.MapPost("/api/settings", async (ClaimsPrincipal user, SettingsModel settings
 {
     int userId = GetUserId(user);
     using var connection = new MySqlConnection(connectionString);
-    var sql = @"INSERT INTO Settings (user_id, semester_length, ics_url, week_offset, is_frylabs_unlocked) VALUES (@UserId, @SemesterLength, @IcsUrl, @WeekOffset, @IsFrylabsUnlocked) ON DUPLICATE KEY UPDATE semester_length = @SemesterLength, ics_url = @IcsUrl, week_offset = @WeekOffset, is_frylabs_unlocked = @IsFrylabsUnlocked";
-    await connection.ExecuteAsync(sql, new { UserId = userId, settings.SemesterLength, IcsUrl = settings.IcsUrl ?? "", settings.WeekOffset, settings.IsFrylabsUnlocked });
+    
+    // SQL lekérdezés kibővítése az is_first_login oszloppal!
+    var sql = @"
+        INSERT INTO Settings (user_id, semester_length, ics_url, week_offset, is_frylabs_unlocked, is_first_login) 
+        VALUES (@UserId, @SemesterLength, @IcsUrl, @WeekOffset, @IsFrylabsUnlocked, @IsFirstLogin) 
+        ON DUPLICATE KEY UPDATE 
+            semester_length = @SemesterLength, 
+            ics_url = @IcsUrl, 
+            week_offset = @WeekOffset, 
+            is_frylabs_unlocked = @IsFrylabsUnlocked,
+            is_first_login = @IsFirstLogin";
+            
+    await connection.ExecuteAsync(sql, new { 
+        UserId = userId, 
+        settings.SemesterLength, 
+        IcsUrl = settings.IcsUrl ?? "", 
+        settings.WeekOffset, 
+        settings.IsFrylabsUnlocked,
+        settings.IsFirstLogin // Az átadott értéket mentjük!
+    });
+    
     return Results.Ok(new { message = "Beállítások mentve!" });
 }).RequireAuthorization();
 
@@ -519,7 +539,7 @@ public class ResetPasswordDto { public string Token { get; set; } = ""; public s
 
 public class UserRegisterDto { public string Name { get; set; } = ""; public string Email { get; set; } = ""; public string Password { get; set; } = ""; }
 public class UserLoginDto { public string Email { get; set; } = ""; public string Password { get; set; } = ""; }
-public class SettingsModel { public int SemesterLength { get; set; } = 14; public string? IcsUrl { get; set; } public int WeekOffset { get; set; } public bool IsFrylabsUnlocked { get; set; } }
+public class SettingsModel { public int SemesterLength { get; set; } = 14; public string? IcsUrl { get; set; } public int WeekOffset { get; set; } public bool IsFrylabsUnlocked { get; set; } public bool IsFirstLogin { get; set; } = true;}
 public class Subject { public int Id { get; set; } public int UserId { get; set; } public string Name { get; set; } = ""; public string SemesterTag { get; set; } = ""; public int Credits { get; set; } public bool HasExam { get; set; } public string? Notes { get; set; } public int ZhCount { get; set; } }
 public class Zarthelyi { public int Id { get; set; } public int UserId { get; set; } public int SubjectId { get; set; } public string SubjectName { get; set; } = ""; public int ScheduledWeek { get; set; } public string? ZhType { get; set; } public string? Room { get; set; } public DateTime DateOf { get; set; } public int MaxPoints { get; set; } public string? Notes { get; set; } }
 public class TimetableItem { 
