@@ -29,7 +29,11 @@ export function openViewExamModal(id) {
     document.getElementById("view-exam-modal").classList.add("is-active");
     
     // Gombok bekötése dinamikusan
-    document.getElementById("view-exam-edit-btn").onclick = () => openEditExamModal(ex.id || ex.Id);
+    document.getElementById("view-exam-edit-btn").onclick = () => {
+        closeViewExamModal();
+        openEditExamModal(ex.id || ex.Id);
+    };
+    
     document.getElementById("view-exam-delete-btn").onclick = () => {
         closeViewExamModal();
         deleteExam(ex.id || ex.Id);
@@ -57,11 +61,21 @@ export function openAddExamModal() {
             : '<option value="">Nincs tárgy az aktuális félévben</option>';
     }
 
+    // Töröljük a mezőket és az ID-t (ÚJ LÉTREHOZÁS)
+    document.getElementById("add-exam-id").value = "";
     document.getElementById("add-exam-dateof").value = "";
     document.getElementById("add-exam-type").value = "Írásbeli";
     document.getElementById("add-exam-room").value = "";
     document.getElementById("add-exam-notes").value = "";
     document.getElementById("add-exam-title").textContent = "🎓 Új Vizsga Rögzítése";
+    
+    // Gomb szövege
+    const submitBtn = document.getElementById("exam-modal-submit-btn");
+    if(submitBtn) {
+        // Mivel a gombban van ikon és szöveg is, biztonságosabb a belső spant frissíteni
+        const textSpan = submitBtn.querySelector("span:not(.icon)");
+        if (textSpan) textSpan.textContent = "Mentés";
+    }
 
     document.getElementById("add-exam-modal").classList.add("is-active");
 }
@@ -75,12 +89,15 @@ export function openEditExamModal(id) {
     const ex = state.allExams.find(x => (x.id || x.Id) === id);
     if (!ex) return;
 
-    // 1. Előbb megnyitjuk az "alap" modált (ez kitakarítja a régi onclickeket és bezárja a View modált)
+    // 1. Előbb megnyitjuk az "alap" modált (ez kitakarítja a régi mezőket és betölti a tárgyakat)
     openAddExamModal();
     
-    // 2. Felülírjuk a címet és az adatokat (ID javítva itt is)
+    // 2. Felülírjuk az ID-t a szerkesztéshez
+    document.getElementById("add-exam-id").value = id;
+
+    // 3. Felülírjuk a címet és az adatokat
     const titleEl = document.getElementById("add-exam-title");
-    if (titleEl) titleEl.textContent = "🎓 Vizsga Szerkesztése";
+    if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-graduation-cap has-text-grey-light mr-2"></i> Vizsga Szerkesztése';
 
     document.getElementById("add-exam-subject").value = ex.subjectId || ex.SubjectId;
     document.getElementById("add-exam-dateof").value = ex.dateOf ? ex.dateOf.substring(0, 16) : "";
@@ -88,19 +105,19 @@ export function openEditExamModal(id) {
     document.getElementById("add-exam-room").value = ex.room || "";
     document.getElementById("add-exam-notes").value = ex.notes || "";
     
-    // 3. Mentés gomb átállítása
+    // FIGYELEM: Nincs már onClick felülírás, a submitExam fogja eldönteni, hogy PUT vagy POST!
     const submitBtn = document.getElementById("exam-modal-submit-btn");
     if(submitBtn) {
-        submitBtn.textContent = "Mentés";
-        submitBtn.onclick = (e) => {
-            e.preventDefault();
-            saveEditedExam(id);
-        };
+        const textSpan = submitBtn.querySelector("span:not(.icon)");
+        if (textSpan) textSpan.textContent = "Frissítés";
     }
 }
 
-// --- API HÍVÁSOK (Submit / Save / Delete) ---
+// --- API HÍVÁSOK (Submit / Delete) ---
 export async function submitExam() {
+    // 1. Megnézzük, van-e rejtett ID (Szerkesztünk-e?)
+    const editId = document.getElementById("add-exam-id").value;
+    
     const subVal = document.getElementById("add-exam-subject").value;
     const dateVal = document.getElementById("add-exam-dateof").value;
 
@@ -119,43 +136,44 @@ export async function submitExam() {
     }
 
     try {
-        const res = await apiFetch(`/exams`, { method: 'POST', body: JSON.stringify(data) });
-        if (res.ok) {
-            closeAddExamModal();
-            await fetchExams(); 
-            showToast("Vizsga rögzítve!", "is-success");
-            if (window.refreshSPA) window.refreshSPA();
+        if (editId) {
+            // ==========================
+            // VAN ID -> SZERKESZTÉS (PUT)
+            // ==========================
+            const res = await apiFetch(`/exams/${editId}`, { method: 'PUT', body: JSON.stringify(data) });
+            if (res.ok) {
+                closeAddExamModal();
+                await fetchExams(); 
+                showToast("Vizsga módosítva!", "is-success");
+                if (window.refreshSPA) window.refreshSPA();
+            }
+        } else {
+            // ==========================
+            // NINCS ID -> ÚJ LÉTREHOZÁS (POST)
+            // ==========================
+            const res = await apiFetch(`/exams`, { method: 'POST', body: JSON.stringify(data) });
+            if (res.ok) {
+                closeAddExamModal();
+                await fetchExams(); 
+                showToast("Vizsga rögzítve!", "is-success");
+                if (window.refreshSPA) window.refreshSPA();
+            }
         }
-    } catch (e) { showToast("Hálózati hiba a mentésnél!", "is-danger"); }
-}
-
-export async function saveEditedExam(id) {
-    const data = {
-        subjectId: parseInt(document.getElementById("add-exam-subject").value),
-        dateOf: document.getElementById("add-exam-dateof").value,
-        examType: document.getElementById("add-exam-type").value,
-        room: document.getElementById("add-exam-room").value,
-        notes: document.getElementById("add-exam-notes").value,
-        semesterTag: state.currentSemesterStr
-    };
-
-    try {
-        const res = await apiFetch(`/exams/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-        if (res.ok) {
-            closeAddExamModal();
-            await fetchExams(); 
-            showToast("Vizsga módosítva!", "is-success");
-            // ÚJ: SPA Képernyő frissítése
-            if (window.refreshSPA) window.refreshSPA();
-            window.dispatchEvent(new Event('hashchange'));
-        }
-    } catch (e) { showToast("Sikertelen mentés!", "is-danger"); }
+    } catch (e) { 
+        console.error(e);
+        showToast("Hálózati hiba a mentésnél!", "is-danger"); 
+    }
 }
 
 export async function deleteExam(id) {
     if (confirm("Biztosan törölni szeretnéd ezt a vizsgát?")) {
-        await apiFetch(`/exams/${id}`, { method: "DELETE" }); 
-        await fetchExams();
-        if (window.refreshSPA) window.refreshSPA();
+        try {
+            await apiFetch(`/exams/${id}`, { method: "DELETE" }); 
+            await fetchExams();
+            if (window.refreshSPA) window.refreshSPA();
+            showToast("Vizsga törölve!", "is-success");
+        } catch (e) {
+            showToast("Hiba a törlés során!", "is-danger");
+        }
     }
 }

@@ -1,4 +1,4 @@
--- Active: 1776362666089@@127.0.0.1@3306@ZHub_DB
+-- Active: 1777643552789@@zh-placc-database-zh-placc.h.aivencloud.com@11445@defaultdb
 -- Active: 1777643552789@@zh-placc-database-zh-placc.h.aivencloud.com@11445@mysql552789@@zh-placc-database-zh-placc.h.aivencloud.com@11445@defaultdb552789@@zh-placc-database-zh-placc.h.aivencloud.com@11445@defaultdb
 ALTER TABLE Users 
 ADD COLUMN profile_picture_url LONGTEXT DEFAULT NULL,
@@ -13,3 +13,5 @@ CREATE TABLE Todos (
     due_date DATETIME NULL,
     FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
 );
+
+SELECT * FROM `Users`

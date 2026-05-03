@@ -5,7 +5,7 @@ import { fetchSettings, openSettingsModal, closeSettingsModal, refreshSettingsIn
 import { fetchSubjects, openAddSubjectModal, openEditSubjectModal, openViewSubjectModal, closeViewSubjectModal, closeAddSubjectModal, submitSubject, saveEditedSubject, deleteSubject } from "./subjectService.js";
 import { openImportModal, closeImportModal, closeSyncProgressModal, startNeptunSync, handleIcsUpload, parseIcsToObjects, processAndUploadIcs, getWeekBoundaries, getCurrentSemesterString, changeSubjectSemester, toggleSubjectSemesterFilter, getSemesterFromDate, initThemeToggle, toggleTheme, getAutoSemesterStart, openMissingLinkModal, closeMissingLinkModal, goToSettingsFromMissingLink, onDateChangeHelper, initAutoWeekCalculation } from "./syncService.js";
 import { showToast, updateDashboardStats, calculateCurrentWeek, updateCurrentWeekBox, changeDisplayedWeek, renderWeeklyCalendar, updateCharCount } from "../core/ui.js";
-import { fetchZhs, openViewZhModal, closeViewZhModal, openAddZhModal, closeAddZhModal, openEditZhModal, calculateZhWeek, submitZh, saveEditedZh, deleteZh} from "./zarthelyiService.js";
+import { fetchZhs, openViewZhModal, closeViewZhModal, openAddZhModal, closeAddZhModal, openEditZhModal, calculateZhWeek, submitZh, deleteZh} from "./zarthelyiService.js";
 
 export function openViewClassModal(id) {
     const cls = state.allTimetableEvents.find(e => String(e.id) === String(id));

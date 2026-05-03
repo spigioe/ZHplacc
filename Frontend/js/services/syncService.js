@@ -57,7 +57,6 @@ import {
     openEditZhModal, 
     calculateZhWeek, 
     submitZh, 
-    saveEditedZh, 
     deleteZh} from "./zarthelyiService.js";
 
 

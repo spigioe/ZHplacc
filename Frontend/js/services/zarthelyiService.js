@@ -32,7 +32,6 @@ export function openViewZhModal(id) {
     document.getElementById("view-zh-maxpoints").textContent = z.maxPoints;
     document.getElementById("view-zh-modal").classList.add("is-active");
     
-    // Gombok bekötése e.preventDefault() védelemmel
     document.getElementById("view-zh-edit-btn").onclick = (e) => { e.preventDefault(); openEditZhModal(z.id); };
     document.getElementById("view-zh-delete-btn").onclick = (e) => {
         e.preventDefault();
@@ -51,8 +50,6 @@ export function openAddZhModal() {
     const subjectSelect = document.getElementById("add-zh-subject");
     if (subjectSelect) {
         const activeSemester = state.currentSemesterStr || getCurrentSemesterString();
-        
-        // SZIGORÚ SZŰRÉS: Csak az aktív félév tárgyai jöhetnek be
         const currentSubjects = (state.allSubjects || []).filter(s => s.semesterTag === activeSemester);
         
         const options = currentSubjects.map(s => 
@@ -72,7 +69,9 @@ export function openAddZhModal() {
     document.getElementById("add-zh-notes").value = "";
     document.getElementById("add-zh-maxpoints").value = 100;
     
-    // Nem kell ide onclick, mert az app.js globálisan figyeli a submit gombot
+    // TÖRLŐDIK AZ ID (Tehát ÚJ ZH lesz létrehozva)
+    document.getElementById("add-zh-id").value = "";
+    
     document.getElementById("add-zh-modal").classList.add("is-active"); 
     document.getElementById("zh-modal-submit-text").textContent = "Felvétel";
     updateCharCount('add-zh-notes', 'add-zh-counter');
@@ -85,7 +84,10 @@ export function closeAddZhModal() {
 export function openEditZhModal(id) {
     closeViewZhModal();
     const z = state.allZhs.find(x => x.id === id);
-    openAddZhModal(); // Ez megcsinálja a legördülő frissítést
+    openAddZhModal(); // Ez megcsinálja a legördülő frissítést és a takarítást
+    
+    // BEÁLLÍTJUK AZ ID-T (Tehát frissítve lesz)
+    document.getElementById("add-zh-id").value = id;
     
     document.getElementById("add-zh-modal-title").textContent = "Zárthelyi szerkesztése";
     document.getElementById("add-zh-week").value = z.scheduledWeek;
@@ -96,8 +98,7 @@ export function openEditZhModal(id) {
     document.getElementById("add-zh-notes").value = z.notes;
     document.getElementById("add-zh-maxpoints").value = z.maxPoints;
     
-    // Itt kivételesen felülírjuk a gombot, de védelmet rakunk rá
-    document.getElementById("zh-modal-submit-btn").onclick = (e) => { e.preventDefault(); saveEditedZh(id); };
+    // FIGYELEM: KIVETTÜK az .onclick felülírást, hogy ne duplikáljon!
     document.getElementById("zh-modal-submit-text").textContent = "Mentés";
 }
 
@@ -116,6 +117,9 @@ export function calculateZhWeek(dateString) {
 }
 
 export async function submitZh() {
+    // 1. Megnézzük, hogy szerkesztünk-e valamit
+    const editId = document.getElementById("add-zh-id").value;
+    
     const subVal = document.getElementById("add-zh-subject").value;
     const dateVal = document.getElementById("add-zh-dateof").value;
     
@@ -130,35 +134,26 @@ export async function submitZh() {
     };
     
     if(!dateVal || !subVal) { showToast("A dátum és a tantárgy megadása kötelező!", "is-warning"); return; }
+    
     try {
-        const res = await apiFetch(`/zarthelyik`, { method: 'POST', body: JSON.stringify(data) });
-        if (res.ok) { 
-            closeAddZhModal(); 
-            await fetchZhs(); 
-            showToast("ZH sikeresen rögzítve!", "is-success"); 
-            if(window.refreshSPA) window.refreshSPA();
-        }
-    } catch (e) { showToast("Hálózati hiba a mentésnél!", "is-danger"); }
-}
-
-export async function saveEditedZh(id) {
-    const data = { 
-        scheduledWeek: parseInt(document.getElementById("add-zh-week").value) || 1, 
-        dateOf: document.getElementById("add-zh-dateof").value,
-        room: document.getElementById("add-zh-room").value, 
-        subjectId: parseInt(document.getElementById("add-zh-subject").value),
-        maxPoints: parseInt(document.getElementById("add-zh-maxpoints").value) || 100, 
-        zhType: document.getElementById("add-zh-type").value,
-        notes: document.getElementById("add-zh-notes").value 
-    };
-    if(!data.dateOf || isNaN(data.subjectId)) { showToast("A dátum és a tantárgy megadása kötelező!", "is-warning"); return; }
-    try {
-        const res = await apiFetch(`/zarthelyik/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-        if(res.ok) { 
-            closeAddZhModal(); 
-            await fetchZhs(); 
-            showToast("ZH sikeresen módosítva!", "is-success"); 
-            if (window.refreshSPA) window.refreshSPA();
+        if (editId) {
+            // VAN ID -> SZERKESZTÉS (PUT)
+            const res = await apiFetch(`/zarthelyik/${editId}`, { method: 'PUT', body: JSON.stringify(data) });
+            if(res.ok) { 
+                closeAddZhModal(); 
+                await fetchZhs(); 
+                showToast("ZH sikeresen módosítva!", "is-success"); 
+                if (window.refreshSPA) window.refreshSPA();
+            }
+        } else {
+            // NINCS ID -> ÚJ LÉTREHOZÁSA (POST)
+            const res = await apiFetch(`/zarthelyik`, { method: 'POST', body: JSON.stringify(data) });
+            if (res.ok) { 
+                closeAddZhModal(); 
+                await fetchZhs(); 
+                showToast("ZH sikeresen rögzítve!", "is-success"); 
+                if(window.refreshSPA) window.refreshSPA();
+            }
         }
     } catch (e) { showToast("Hálózati hiba a mentésnél!", "is-danger"); }
 }

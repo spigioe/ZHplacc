@@ -164,6 +164,7 @@ export function injectModals() {
 <div class="modal" id="add-zh-modal">
     <div class="modal-background" id="add-zh-bg"></div>
     <div class="modal-card">
+        <input type="hidden" id="add-zh-id" value="">
         <header class="modal-card-head">
             <p class="modal-card-title has-text-weight-bold" id="add-zh-modal-title">
                 <i class="fa-solid fa-file-pen has-text-grey-light mr-2"></i> Új Zárthelyi
@@ -233,6 +234,7 @@ export function injectModals() {
 <div class="modal" id="add-exam-modal">
     <div class="modal-background" id="add-exam-bg"></div>
     <div class="modal-card">
+        <input type="hidden" id="add-exam-id" value="">
         <header class="modal-card-head">
             <p class="modal-card-title has-text-weight-bold" id="add-exam-title">
                 <i class="fa-solid fa-graduation-cap has-text-grey-light mr-2"></i> Új Vizsga
