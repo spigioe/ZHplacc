@@ -417,5 +417,143 @@ export function injectModals() {
         </footer>
     </div>
 </div>
+<!-- ========================================== -->
+<!-- ÚJ ESEMÉNY / ÓRA MODAL -->
+<!-- ========================================== -->
+<div class="modal" id="add-class-modal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title has-text-weight-bold"><i class="fa-solid fa-calendar-plus mr-2 has-text-grey-light"></i> Új Esemény</p>
+            <button class="delete" aria-label="close" id="add-class-close-btn"></button>
+        </header>
+        <section class="modal-card-body">
+            <div class="tabs is-toggle is-fullwidth is-small mb-4">
+                <ul id="add-class-type-toggle">
+                    <li class="is-active" data-type="subject"><a><span>Tantárgyi óra</span></a></li>
+                    <li data-type="custom"><a><span>Egyéni esemény</span></a></li>
+                </ul>
+            </div>
+            
+            <div id="add-class-subject-container" class="field">
+                <label class="label is-small">Tantárgy</label>
+                <div class="control">
+                    <div class="select is-fullwidth">
+                        <select id="add-class-subject-dropdown" class="has-text-weight-semibold"></select>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="add-class-custom-container" class="field is-hidden">
+                <label class="label is-small">Esemény neve</label>
+                <div class="control">
+                    <input class="input has-text-weight-semibold" type="text" id="add-class-custom-name" placeholder="Pl.: Csoporttalálkozó">
+                </div>
+            </div>
+
+            <div class="columns is-mobile mb-0">
+                <div class="column is-6 field mb-3">
+                    <label class="label is-small">Nap</label>
+                    <div class="control">
+                        <div class="select is-fullwidth">
+                            <select id="add-class-day">
+                                <option value="1">Hétfő</option>
+                                <option value="2">Kedd</option>
+                                <option value="3">Szerda</option>
+                                <option value="4">Csütörtök</option>
+                                <option value="5">Péntek</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="column is-6 field mb-3">
+                    <label class="label is-small">Terem</label>
+                    <div class="control has-icons-left">
+                        <input class="input" type="text" id="add-class-room" placeholder="Pl.: BA.F08">
+                        <span class="icon is-small is-left has-text-grey"><i class="fa-solid fa-location-dot"></i></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="columns is-mobile mb-0">
+                <div class="column is-6 field mb-3">
+                    <label class="label is-small">Kezdés</label>
+                    <div class="control"><input class="input" type="time" id="add-class-start"></div>
+                </div>
+                <div class="column is-6 field mb-3">
+                    <label class="label is-small">Vége</label>
+                    <div class="control"><input class="input" type="time" id="add-class-end"></div>
+                </div>
+            </div>
+            
+            <div class="columns is-mobile">
+                <div class="column is-8 field">
+                    <label class="label is-small">Típus</label>
+                    <div class="control">
+                        <div class="select is-fullwidth">
+                            <select id="add-class-type">
+                                <option value="Előadás">Előadás</option>
+                                <option value="Gyakorlat">Gyakorlat</option>
+                                <option value="Labor">Labor</option>
+                                <option value="Egyéb">Egyéb</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="column is-4 field">
+                    <label class="label is-small">Szín</label>
+                    <div class="control">
+                        <input class="input p-1" type="color" id="add-class-color" value="#3b82f6" style="height: 36px; cursor: pointer;">
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label is-small">Megjegyzés</label>
+                <div class="control"><textarea class="textarea" id="add-class-notes" rows="2" style="resize: none;"></textarea></div>
+            </div>
+        </section>
+        <footer class="modal-card-foot is-flex is-justify-content-space-between">
+            <button class="button is-ghost has-text-grey" id="add-class-cancel-btn-bottom">Mégse</button>
+            <button class="button is-link is-rounded px-6 has-text-weight-bold" id="add-class-submit-btn">
+                <span class="icon mr-1"><i class="fa-solid fa-check"></i></span><span>Mentés</span>
+            </button>
+        </footer>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- ÓRA RÉSZLETEI MODAL (View Class) -->
+<!-- ========================================== -->
+<div class="modal" id="view-class-modal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title has-text-weight-bold">Óra részletei</p>
+            <button class="delete" aria-label="close" id="view-class-close-btn"></button>
+        </header>
+        <section class="modal-card-body">
+            <div class="box is-shadowless mb-4" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
+                <h1 id="detail-class-title" class="title is-4 mb-4">Esemény neve</h1>
+                <div class="is-flex is-align-items-center mb-3"><span class="icon mr-3"><i class="fa-regular fa-clock"></i></span><span id="detail-class-time" class="has-text-weight-medium">Időpont</span></div>
+                <div class="is-flex is-align-items-center mb-3"><span class="icon mr-3"><i class="fa-solid fa-location-dot"></i></span><span id="detail-class-room">Terem</span></div>
+                <div class="is-flex is-align-items-center"><span class="icon mr-3"><i class="fa-solid fa-layer-group"></i></span><span id="detail-class-type">Típus</span></div>
+            </div>
+            
+            <div class="field mt-4">
+                <label class="label is-small">Megjegyzés</label>
+                <div class="control"><textarea class="textarea" id="detail-class-notes" rows="3" placeholder="Ide írhatsz jegyzetet az órához..."></textarea></div>
+            </div>
+        </section>
+        <footer class="modal-card-foot is-flex is-justify-content-space-between">
+            <button class="button is-danger is-light px-4" id="detail-class-delete-btn">Törlés</button>
+            <div>
+                <button class="button is-warning is-light mr-2" id="view-class-to-zh-btn" title="ZH kiírása ebből az órából">
+                    <span class="icon"><i class="fa-solid fa-file-pen"></i></span>
+                </button>
+                <button class="button is-link px-5" id="view-class-save-btn">Mentés</button>
+            </div>
+        </footer>
+    </div>
+</div>
     `;
 }

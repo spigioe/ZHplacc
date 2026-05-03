@@ -162,7 +162,7 @@ export async function renderTimetable(container) {
 
                                     return `
                                         <div class="notification ${colorClass} mb-0 tt-event-card" 
-                                             data-id="${e.id}" data-type="${e.type}" data-iscustom="${e.isCustom || false}"
+                                             data-id="${e.id || e.Id}" data-type="${e.type}" data-iscustom="${e.isCustom || false}"
                                              title="${escapeHTML(tooltipText)}"
                                              style="top: ${top + 40}px; height: ${height - 2}px; ${borderStyle} ${inlineStyle}">
                                             
@@ -227,15 +227,26 @@ export async function renderTimetable(container) {
 
     const wrapper = container.querySelector('.timetable-wrapper');
     if (wrapper) {
-        // Kis késleltetés kell, hogy a DOM biztosan renderelődjön, mielőtt görgetünk
+        // --- 1. JAVÍTÁS: MOBILON 7:30-RA UGRÁS ---
         setTimeout(() => {
-            // A 8:00 (vagy 7:00) távolsága pixelben:
-            // Óránként 60px (hourHeight), levonva a fejléc magasságát (40px)
-            const targetHour = 8; // Ide akarunk ugrani
+            const isMobile = window.innerWidth <= 768;
+
+            // Kifejezetten 7.5 (7:30) beállítása mobilon, ahogy kérted
+            let targetHour = isMobile ? 7.5 : 8.0; 
+
+            // Csak akkor megyünk feljebb 7:30-nál, ha extrém korai óra van (pl. 6:00)
+            if (allEvents.length > 0) {
+                const minHour = Math.min(...allEvents.map(e => e.startObj.getHours() + (e.startObj.getMinutes() / 60)));
+                if (minHour < targetHour) {
+                    targetHour = Math.max(startHour, minHour - 0.5); 
+                }
+            }
+
             const scrollPosition = ((targetHour - startHour) * hourHeight) - 20; 
-            
-            wrapper.scrollTop = scrollPosition;
-        }, 10);
+
+            // Natív, azonnali ugrás
+            wrapper.scrollTo({ top: scrollPosition > 0 ? scrollPosition : 0, behavior: 'instant' });
+        }, 300);
     }
 
     // --- INTERAKTÍV LOGIKA ---
@@ -259,6 +270,19 @@ export async function renderTimetable(container) {
         submenu.classList.remove('is-open', 'is-expanded');
         line.style.display = 'none';
     };
+
+    // --- 2. JAVÍTÁS: GÖRGETÉSRE ELTŰNIK A MENÜ ---
+    if (wrapper) {
+        // Asztali görgetés
+        wrapper.addEventListener('scroll', () => {
+            if (isFrozen) closeMenu();
+        }, { passive: true });
+        
+        // Mobilos képernyő-húzás (nagyon reszponzív)
+        wrapper.addEventListener('touchmove', () => {
+            if (isFrozen) closeMenu();
+        }, { passive: true });
+    }
 
     grid.addEventListener('mousemove', (e) => {
         if (isFrozen) return;
@@ -309,25 +333,39 @@ export async function renderTimetable(container) {
                 btnDel.style.display = 'none';
             }
 
+            // --- SMART MENÜ POZICIONÁLÁSA JAVÍTVA ---
             const dayCol = document.getElementById(`day-col-${currentDay}`);
-            smartMenu.style.left = (dayCol.offsetLeft + dayCol.offsetWidth / 2 - 85) + 'px'; 
-            smartMenu.style.top = (currentSnappedMinutes + 40) + 'px'; 
+            
+            let menuTop = currentSnappedMinutes + 40;
+            smartMenu.style.top = menuTop + 'px'; 
 
-            if (currentDay > 4) { 
-                submenu.classList.add('is-left-side');
+            let menuLeft = dayCol.offsetLeft + (dayCol.offsetWidth / 2) - 85;
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                const minLeft = wrapper.scrollLeft + 10;
+                const maxLeft = wrapper.scrollLeft + wrapper.clientWidth - 180;
+                smartMenu.style.left = Math.max(minLeft, Math.min(menuLeft, maxLeft)) + 'px';
             } else {
-                submenu.classList.remove('is-left-side');
+                smartMenu.style.left = menuLeft + 'px';
             }
 
-            const wrapperEl = document.querySelector('.timetable-wrapper');
-            const visibleY = (currentSnappedMinutes + 40) - wrapperEl.scrollTop;
+            const visibleY = menuTop - wrapper.scrollTop;
 
-            if (wrapperEl.clientHeight - visibleY < 180) {
-                smartMenu.style.transform = 'translateY(-110%) scale(1)'; 
-            } else if (visibleY < 100) {
-                smartMenu.style.transform = 'translateY(5px) scale(1)'; 
+            if (wrapper.clientHeight - visibleY < 250) {
+                // smartMenu.style.transform = 'translateY(-100%)'; <- TÖRÖLVE!
+                submenu.classList.add('is-up');
+                submenu.classList.remove('is-down');
             } else {
-                smartMenu.style.transform = 'translateY(-50%) scale(1)'; 
+                // smartMenu.style.transform = 'translateY(0)'; <- TÖRÖLVE!
+                submenu.classList.add('is-down');
+                submenu.classList.remove('is-up');
+            }
+
+            // Asztali balra húzás
+            if (!isMobile) {
+                if (currentDay > 4) submenu.classList.add('is-left-side');
+                else submenu.classList.remove('is-left-side');
             }
         }
     });
@@ -346,19 +384,23 @@ export async function renderTimetable(container) {
             endM: (currentSnappedMinutes + 90) % 60
         };
 
-        const wrapperEl = document.querySelector('.timetable-wrapper');
-        const visibleY = (currentSnappedMinutes + 40) - wrapperEl.scrollTop;
-        
+        const visibleY = (currentSnappedMinutes + 40) - wrapper.scrollTop;
         submenu.classList.remove('is-up', 'is-down');
         
-        if (wrapperEl.clientHeight - visibleY < 45) {
+        if (wrapper.clientHeight - visibleY < 250) {
             submenu.classList.add('is-up');   
-        } else if (visibleY < 100) {
+        } else {
             submenu.classList.add('is-down'); 
         }
         
         submenu.classList.add('is-open');
-        setTimeout(() => submenu.classList.add('is-expanded'), 200);
+        // MOBILON ne legyen késleltetett nyitás (az is-expanded hozza be az animációt asztalon)
+        const isMobile = window.innerWidth <= 768;
+        if (!isMobile) {
+            setTimeout(() => submenu.classList.add('is-expanded'), 200);
+        } else {
+            submenu.classList.add('is-expanded'); // Mobilon azonnal megkapja
+        }
     });
 
     document.getElementById('tt-btn-type-zh').addEventListener('click', (e) => {
@@ -428,42 +470,3 @@ export async function renderTimetable(container) {
     document.getElementById('tt-prev-week')?.addEventListener('click', () => { displayWeek--; renderTimetable(container); });
     document.getElementById('tt-next-week')?.addEventListener('click', () => { displayWeek++; renderTimetable(container); });
 }
-
-// === OLDAL (MODÁL) ESEMÉNYEK, TABOK KEZELÉSE ===
-const classToggleTabs = document.querySelectorAll('#add-class-type-toggle li');
-const dropdownContainer = document.getElementById('add-class-subject-container');
-const customContainer = document.getElementById('add-class-custom-container');
-
-classToggleTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        classToggleTabs.forEach(t => t.classList.remove('is-active'));
-        tab.classList.add('is-active');
-
-        if (tab.dataset.type === 'subject') {
-            dropdownContainer.classList.remove('is-hidden');
-            customContainer.classList.add('is-hidden');
-        } else {
-            dropdownContainer.classList.add('is-hidden');
-            customContainer.classList.remove('is-hidden');
-        }
-    });
-});
-
-function populateAddClassSubjectDropdown() {
-    const dropdown = document.getElementById('add-class-subject-dropdown');
-    if (!dropdown) return;
-    
-    dropdown.innerHTML = '';
-    if (window.state && window.state.subjects) {
-        window.state.subjects.forEach(sub => {
-            const opt = document.createElement('option');
-            opt.value = sub.name; 
-            opt.textContent = sub.name;
-            dropdown.appendChild(opt);
-        });
-    }
-}
-
-document.getElementById('add-class-cancel-btn-bottom')?.addEventListener('click', () => {
-    document.getElementById('add-class-modal').classList.remove('is-active');
-});

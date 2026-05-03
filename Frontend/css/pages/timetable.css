@@ -3,7 +3,6 @@
    ========================================================================== */
 
 /* --- Fő konténerek --- */
-
 .tt-scrollable-area {
     position: relative;
     background: var(--bulma-background);
@@ -44,8 +43,8 @@
     border-bottom: 1px solid var(--bulma-border);
     position: sticky;
     top: 0;
-    z-index: 20;
-    background-color: var(--bulma-scheme-main, #ffffff);
+    z-index: 51 !important; /* Emelve a naptár fölé */
+    background-color: var(--bulma-background);
 }
 
 .tt-time-slot {
@@ -65,10 +64,10 @@
 .tt-day-header {
     height: 40px;
     border-bottom: 2px solid var(--bulma-border);
-    background-color: var(--bulma-scheme-main, #ffffff);
+    background-color: var(--bulma-background);
     position: sticky;
     top: 0;
-    z-index: 20;
+    z-index: 50 !important; /* Emelve az események fölé */
 }
 
 .tt-day-title {
@@ -97,7 +96,7 @@
 .tt-event-card:hover {
     filter: brightness(0.85);
     transform: scale(1.02);
-    z-index: 25 !important;
+    z-index: 40 !important; /* Felemelve, de a fejléc (50) alatt marad */
     box-shadow: 0 6px 12px rgba(0,0,0,0.2) !important;
 }
 
@@ -179,6 +178,7 @@
     background: transparent;
 }
 
+
 /* ==========================================================================
    RESZPONZÍV DIZÁJN (MOBIL / TABLET)
    ========================================================================== */
@@ -249,16 +249,126 @@
         border-radius: 8px;
         border: 1px solid var(--bulma-border);
     }
+    
+    /* A naptár belső rácsa mobilon minimum 800px széles, hogy lehessen jobbra-balra görgetni */
     .tt-grid-container {
         min-width: 800px; 
     }
 
-    /* SMART MENU OPTIMALIZÁLÁSA MOBILRA */
-    .tt-menu-item, .tt-sub-item {
-        height: 50px;
-        font-size: 1rem;
+    /* =========================================
+       SMART MENÜ ÉS ALMENÜ (MOBIL) - RAGASZTOTT FIX
+       ========================================= */
+
+    .tt-smart-menu {
+        width: 200px !important;
+        z-index: 100 !important;
+        /* Nem használjuk a flex reverset, mert nem működött megbízhatóan */
+        display: block !important;
+        height: 50px !important; /* Pontosan a főgomb magassága */
+        padding: 0 !important;
     }
+
+    .tt-menu-item {
+        width: 100% !important;
+        height: 50px !important;
+        font-size: 1rem !important;
+        border-radius: 8px !important;
+        margin: 0 !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+    }
+
+    /* Az almenü KÖZVETLENÜL a szülő (.tt-smart-menu) dobozhoz képest mozog */
+    .tt-submenu-wrapper {
+        position: absolute !important;
+        left: 0 !important;
+        right: 0 !important;
+        /* 1. Mivel a gomb 50px magas, pontosan 50px-től kezdődjön a menü, így összetapadnak! */
+        top: 50px !important;
+        width: 100% !important;
+        height: auto !important;
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0 !important; /* Semmi extra hézag */
+        padding: 0 !important;
+
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.15s ease !important;
+        /* Kinyírjuk az asztali "leesős/slide" animációkat */
+        transform: translate3d(0, 0, 0) !important;
+        animation: none !important;
+    }
+
+    /* Amikor megnyitjuk az "Új esemény" gombot */
+    .tt-submenu-wrapper.is-open,
+    .tt-submenu-wrapper.is-expanded {
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: block !important;
+    }
+
+    /* HA FELFELÉ KELL NYÍLNIA */
+    .tt-submenu-wrapper.is-up {
+        top: auto !important;
+        /* 2. Felfelé nyitásnál az alja (bottom) legyen pont 50px-re (a gomb tetejénél) */
+        bottom: 50px !important; 
+        margin: 0 !important;
+    }
+
+    /* Asztali maradékok eltakarítása */
+    .tt-submenu-wrapper.is-left-side {
+        left: 0 !important;
+        transform: none !important;
+    }
+
+    /* A gombok listája (belseje) */
     .tt-submenu-track {
-        height: 50px;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+        transform: none !important;
+        transition: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 0 !important;
+        display: contents !important;
     }
+
+    .tt-sub-items-container {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        height: auto !important;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+        overflow: hidden;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 1px solid var(--bulma-border);
+    }
+
+    html[data-theme="dark"] .tt-sub-items-container {
+        background: #27272a;
+        border: 1px solid #3f3f46;
+    }
+
+    .tt-sub-item {
+        width: 100% !important;
+        height: 50px !important;
+        font-size: 1rem !important;
+        border-radius: 0 !important;
+        border-bottom: 1px solid rgba(128,128,128,0.1) !important;
+        text-align: center;
+        background: transparent;
+        font-weight: bold;
+        margin: 0 !important;
+    }
+
+    .tt-sub-item:last-child {
+        border-bottom: none !important;
+    }
+    
 }

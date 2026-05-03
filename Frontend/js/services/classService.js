@@ -7,45 +7,66 @@ import { openImportModal, closeImportModal, closeSyncProgressModal, startNeptunS
 import { showToast, updateDashboardStats, calculateCurrentWeek, updateCurrentWeekBox, changeDisplayedWeek, renderWeeklyCalendar, updateCharCount } from "../core/ui.js";
 import { fetchZhs, openViewZhModal, closeViewZhModal, openAddZhModal, closeAddZhModal, openEditZhModal, calculateZhWeek, submitZh, deleteZh} from "./zarthelyiService.js";
 
+// --- ÓRA (ESEMÉNY) MEGTEKINTÉSE ---
 export function openViewClassModal(id) {
-    const cls = state.allTimetableEvents.find(e => String(e.id) === String(id));
-    if (!cls) return;
+    // Stringgé alakítjuk mindkét oldalt a biztos egyezés érdekében!
+    const cls = state.allTimetableEvents.find(c => String(c.id || c.Id) === String(id));
     
+    if (!cls) {
+        console.warn("Nem található az óra ID alapján:", id);
+        return;
+    }
+
+    // Eltároljuk a state-ben, hogy mentésnél/törlésnél tudjuk mit piszkálunk
     state.currentlySelectedClass = cls;
-    document.getElementById("detail-class-subject").textContent = cls.rawSubjectName;
-    document.getElementById("detail-class-type").textContent = cls.rawClassType;
-    document.getElementById("detail-class-time").textContent = `${cls.startObj.getFullYear()}. ${cls.startObj.getMonth()+1}. ${cls.startObj.getDate()}.   ${cls.timeStr}`;
-    document.getElementById("detail-class-room").textContent = cls.room || "-";
+
+    // 1. Cím és alap adatok betöltése
+    document.getElementById('detail-class-title').textContent = cls.subject || cls.Subject || "Ismeretlen óra";
+    document.getElementById('detail-class-room').textContent = cls.room || cls.Room || "Nincs megadva terem";
+    document.getElementById('detail-class-type').textContent = cls.type || cls.Type || "Tanóra";
+    document.getElementById('detail-class-notes').value = cls.notes || cls.Notes || "";
+
+    // 2. Dátum és Időpont formázása
+    const days = ['Vasárnap', 'Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'Péntek', 'Szombat'];
+    const dayIndex = cls.dayOfWeekIndex || cls.DayOfWeek || 1;
+    const dayName = days[dayIndex];
     
-    document.getElementById("detail-class-notes-input").value = cls.notes || "";
-    document.getElementById("detail-class-color-input").value = (cls.color && cls.color !== "") ? cls.color : "#3b82f6";
-    document.getElementById("detail-class-importance-input").value = cls.importance || "0";
+    let startStr = "??:??";
+    let endStr = "??:??";
     
-    const scopeField = document.getElementById("detail-scope-field");
-    if (scopeField) {
-        if (cls.isCustom) {
-            scopeField.style.display = "none"; 
-        } else {
-            scopeField.style.display = "block"; 
-            document.querySelector('input[name="classScope"][value="single"]').checked = true;
-        }
+    // Ha már Date objektummá van alakítva
+    if (cls.startObj instanceof Date && !isNaN(cls.startObj)) {
+        startStr = `${String(cls.startObj.getHours()).padStart(2, '0')}:${String(cls.startObj.getMinutes()).padStart(2, '0')}`;
+    } else if (cls.start) { // Vagy ha nyers string
+        const d = new Date(cls.start);
+        if(!isNaN(d)) startStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+    
+    if (cls.endObj instanceof Date && !isNaN(cls.endObj)) {
+        endStr = `${String(cls.endObj.getHours()).padStart(2, '0')}:${String(cls.endObj.getMinutes()).padStart(2, '0')}`;
+    } else if (cls.end) {
+        const d = new Date(cls.end);
+        if(!isNaN(d)) endStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     }
 
-    const actionsDiv = document.getElementById("custom-class-actions");
-    if (actionsDiv) {
-        if (cls.isCustom) actionsDiv.classList.remove("is-hidden");
-        else actionsDiv.classList.add("is-hidden");
+    document.getElementById('detail-class-time').textContent = `${dayName} ${startStr} - ${endStr}`;
+
+    // 3. Törlés gomb elrejtése/mutatása
+    // A Neptunból importált órákat nem lehet egyesével törölni, csak a sajátokat!
+    const delBtn = document.getElementById('detail-class-delete-btn');
+    if (cls.isCustom || cls.IsCustom) {
+        delBtn.style.display = 'block';
+    } else {
+        delBtn.style.display = 'none';
     }
 
-    const zhBtn = document.getElementById("view-class-to-zh-btn");
-    if (zhBtn) zhBtn.style.display = cls.isCustom ? "none" : "inline-flex";
-    
-    document.getElementById("view-class-modal").classList.add("is-active");
+    // 4. Modál megjelenítése
+    document.getElementById('view-class-modal').classList.add('is-active');
 }
 
 export function closeViewClassModal() {
-    document.getElementById("view-class-modal").classList.remove("is-active");
-    state.currentlySelectedClass = null;
+    document.getElementById('view-class-modal').classList.remove('is-active');
+    state.currentlySelectedClass = null; // Takarítunk magunk után
 }
 
 export async function saveClassDetails() {
