@@ -190,7 +190,7 @@ export async function renderTimetable(container) {
                 </div>
             </div>
 
-            <!-- JOBB OSZLOP: STATISZTIKA -->
+            <!-- JOBB OSZLOP: STATISZTIKA & TODO WIDGET -->
             <div class="dash-right" style="height: 100%; overflow-y: auto; padding-bottom: 20px;">
                 <div class="buttons mb-4">
                     <button class="button is-link is-light is-fullwidth" id="dash-tt-add-btn">
@@ -214,11 +214,11 @@ export async function renderTimetable(container) {
                     </div>
                 </div>
 
-                <div class="box p-4 tt-dashed-box">
+                <!-- API ALAPÚ TEENDŐK WIDGET -->
+                <div class="box p-4 tt-dashed-box" id="tt-sidebar-todo-container">
                     <div class="has-text-centered py-3">
-                        <span class="icon is-large has-text-grey-light mb-2"><i class="fa-solid fa-list-check fa-2x"></i></span>
-                        <h3 class="title is-6 has-text-grey mb-1">Napi Teendők</h3>
-                        <p class="is-size-7 has-text-grey">Hamarosan érkezik...</p>
+                        <span class="icon is-large has-text-grey-light mb-2"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i></span>
+                        <p class="is-size-7 has-text-grey">Teendők betöltése...</p>
                     </div>
                 </div>
             </div>
@@ -248,6 +248,9 @@ export async function renderTimetable(container) {
             wrapper.scrollTo({ top: scrollPosition > 0 ? scrollPosition : 0, behavior: 'instant' });
         }, 300);
     }
+
+    // Töltsük be a Todo widgetet az API-ról!
+    renderTimetableTodoWidget();
 
     // --- INTERAKTÍV LOGIKA ---
     const grid = document.getElementById('tt-grid');
@@ -353,11 +356,9 @@ export async function renderTimetable(container) {
             const visibleY = menuTop - wrapper.scrollTop;
 
             if (wrapper.clientHeight - visibleY < 250) {
-                // smartMenu.style.transform = 'translateY(-100%)'; <- TÖRÖLVE!
                 submenu.classList.add('is-up');
                 submenu.classList.remove('is-down');
             } else {
-                // smartMenu.style.transform = 'translateY(0)'; <- TÖRÖLVE!
                 submenu.classList.add('is-down');
                 submenu.classList.remove('is-up');
             }
@@ -469,4 +470,96 @@ export async function renderTimetable(container) {
     document.getElementById('dash-tt-add-btn')?.addEventListener('click', () => openAddClassModal());
     document.getElementById('tt-prev-week')?.addEventListener('click', () => { displayWeek--; renderTimetable(container); });
     document.getElementById('tt-next-week')?.addEventListener('click', () => { displayWeek++; renderTimetable(container); });
+}
+
+// ==========================================
+// ÓRAREND JOBB OSZLOP TODO WIDGET 
+// ==========================================
+async function renderTimetableTodoWidget() {
+    const container = document.getElementById("tt-sidebar-todo-container");
+    if (!container) return;
+
+    try {
+        const res = await apiFetch("/todos");
+        if (!res.ok) return;
+        const todos = await res.json();
+        
+        const pendingTodos = todos.filter(t => !t.isCompleted);
+
+        // HA NINCS TEENDŐ
+        if (pendingTodos.length === 0) {
+            container.innerHTML = `
+                <div class="has-text-centered py-3">
+                    <span class="icon is-large has-text-success mb-2"><i class="fa-solid fa-check-double fa-2x"></i></span>
+                    <h3 class="title is-6 has-text-grey mb-1">Napi Teendők</h3>
+                    <p class="is-size-7 has-text-grey">Minden kész, szép munka!</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Rendezzük határidő szerint, maximum 5-öt mutatunk
+        const topTodos = pendingTodos.sort((a, b) => {
+            if (!a.dueDate) return 1;
+            if (!b.dueDate) return -1;
+            return new Date(a.dueDate) - new Date(b.dueDate);
+        }).slice(0, 5);
+        
+        let html = `
+            <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+                <h3 class="title is-6 has-text-grey m-0"><i class="fa-solid fa-list-check mr-2"></i>Teendők</h3>
+                <span class="tag is-info is-light is-rounded has-text-weight-bold">${pendingTodos.length}</span>
+            </div>
+            <div class="is-flex-direction-column" style="gap: 8px; display: flex;">
+        `;
+
+        topTodos.forEach(todo => {
+            const isLate = todo.dueDate && new Date(todo.dueDate).setHours(0,0,0,0) < new Date().setHours(0,0,0,0);
+            const dateStr = todo.dueDate ? new Date(todo.dueDate).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' }) : '';
+            
+            let dateBadge = '';
+            if (dateStr) {
+                if (isLate) dateBadge = `<div class="mt-1"><span class="tag is-danger is-light is-small" style="font-size: 0.65rem; padding: 0 6px;"><i class="fa-solid fa-circle-exclamation mr-1"></i> ${dateStr}</span></div>`;
+                else dateBadge = `<div class="mt-1"><span class="tag is-link is-light is-small" style="font-size: 0.65rem; padding: 0 6px;"><i class="fa-regular fa-calendar mr-1"></i> ${dateStr}</span></div>`;
+            }
+
+            html += `
+                <div class="box is-shadowless p-2 mb-0 is-flex is-align-items-center todo-card" style="background: var(--bulma-background); border-left: 3px solid ${isLate ? 'var(--bulma-danger)' : 'var(--bulma-link)'} !important; min-height: 40px; border-radius: 4px;">
+                    <label class="checkbox mr-2 is-flex is-align-items-center">
+                        <input type="checkbox" class="tt-widget-todo-cb todo-checkbox-custom" data-id="${todo.id}">
+                    </label>
+                    <div style="overflow: hidden; flex-grow: 1;">
+                        <span class="is-size-7 has-text-weight-bold" style="display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--bulma-text-strong);">
+                            ${escapeHTML(todo.title)}
+                        </span>
+                        ${dateBadge}
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+        
+        if (pendingTodos.length > 5) {
+            html += `<div class="has-text-centered mt-3"><a href="#todos" class="button is-small is-ghost has-text-link has-text-weight-bold">Továbbiak megtekintése...</a></div>`;
+        }
+
+        container.innerHTML = html;
+
+        // Pipálás esemény bekötése a widgethez
+        document.querySelectorAll('.tt-widget-todo-cb').forEach(cb => cb.addEventListener('change', async (e) => {
+            const id = e.target.getAttribute('data-id');
+            const card = e.target.closest('.todo-card');
+            if(card) card.style.opacity = "0.5";
+            
+            // Meghívjuk a backend toggle API-t
+            await apiFetch(`/todos/${id}/toggle`, { method: "PUT" });
+            
+            // Újrarendereljük a widgetet, hogy eltűnjön a kész feladat
+            renderTimetableTodoWidget();
+        }));
+
+    } catch (e) {
+        container.innerHTML = `<p class="has-text-danger is-size-7">Hiba a teendők betöltésekor.</p>`;
+    }
 }
