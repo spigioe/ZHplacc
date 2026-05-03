@@ -71,24 +71,42 @@
 
     <!-- KÖZÉPSŐ FŐ RÉSZ -->
     <div class="main-wrapper">
-        <header class="topbar">
-            <div class="is-flex is-align-items-center" style="gap: 15px;">
-                <!-- ÚJ: Mobilos kijelentkezés gomb (Csak mobilon látszik) -->
-                <button class="button is-white is-rounded is-hidden-tablet" id="mobile-logout-btn" title="Kijelentkezés">
-                    <i class="fa-solid fa-right-from-bracket fa-flip-horizontal has-text-danger"></i>
+        <header class="topbar is-flex is-align-items-center is-justify-content-space-between px-4" style="border-bottom: 1px solid var(--bulma-border); background-color: var(--bulma-background); min-height: 55px; height: 55px;">
+            
+            <!-- BAL OLDAL -->
+            <div class="is-flex is-align-items-center">
+                <!-- MOBIL: platZH logó -->
+                <h1 class="title is-5 mb-0 has-text-link is-hidden-tablet">plat<span class="has-text-grey-dark">ZH</span>.</h1>
+                
+                <!-- ASZTAL: Dinamikus Oldalcím és Dátum -->
+                <div class="is-hidden-mobile is-flex is-align-items-center">
+                    <span class="icon has-text-grey-light mr-2" id="topbar-page-icon"><i class="fa-solid fa-house"></i></span>
+                    <h2 class="title is-6 mb-0 has-text-grey-dark has-text-weight-bold" id="page-title">Vezérlőpult</h2>
+                    
+                    <span class="tag is-link is-light is-rounded ml-4 has-text-weight-semibold" id="topbar-date-widget" style="letter-spacing: 0.5px;">
+                        <!-- A JS tölti ki a mai dátummal -->
+                    </span>
+                </div>
+            </div>
+
+            <!-- JOBB OLDAL: Gombok -->
+            <div class="is-flex is-align-items-center" style="gap: 5px;">
+                <!-- Mobilos kijelentkezés gomb (Csak mobilon) -->
+                <button class="button is-ghost is-small is-hidden-tablet px-2" id="mobile-logout-btn" title="Kijelentkezés">
+                    <i class="fa-solid fa-right-from-bracket has-text-danger fa-flip-horizontal fa-lg"></i>
                 </button>
                 
-                <h2 class="title is-5 mb-0" id="page-title">Dashboard</h2>
-
-
-                <button class="button is-white is-rounded is-hidden-tablet" id="mobile-help-btn" title="Súgó">
-                    <i class="fa-solid fa-circle-question has-text-info"></i>
+                <!-- Mobilos Súgó gomb (Csak mobilon) -->
+                <button class="button is-ghost is-small is-hidden-tablet px-2" id="mobile-help-btn" title="Súgó">
+                    <i class="fa-solid fa-circle-question has-text-info fa-lg"></i>
                 </button>
                 
-                <button class="button is-white is-rounded is-hidden-tablet" id="mobile-settings-btn">
-                    <i class="fa-solid fa-gear"></i>
+                <!-- Mobilos beállítások gomb (Csak mobilon) -->
+                <button class="button is-ghost is-small is-hidden-tablet px-2" id="mobile-settings-btn" title="Beállítások">
+                    <i class="fa-solid fa-gear has-text-grey-dark fa-lg"></i>
                 </button>
-
+                
+                
             </div>
         </header>
 

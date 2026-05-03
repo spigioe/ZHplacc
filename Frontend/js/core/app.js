@@ -81,7 +81,18 @@ const routes = {
     'assessments': renderAssessments,
     'todos': renderTodos,
     'settings': renderSettings,
-    'help' : renderHelp
+    'help': renderHelp
+};
+
+const routeMeta = {
+    '': { title: 'Vezérlőpult', icon: 'fa-house' },
+    'dashboard': { title: 'Vezérlőpult', icon: 'fa-house' },
+    'timetable': { title: 'Órarend', icon: 'fa-calendar-week' },
+    'subjects': { title: 'Tantárgyak', icon: 'fa-book-bookmark' },
+    'assessments': { title: 'Számonkérések', icon: 'fa-file-pen' },
+    'todos': { title: 'Teendők', icon: 'fa-list-check' },
+    'settings': { title: 'Beállítások', icon: 'fa-gear' },
+    'help': { title: 'Súgó és Tudástár', icon: 'fa-circle-question' }
 };
 
 const routerView = document.getElementById('router-view');
@@ -104,6 +115,21 @@ async function navigate() {
         if (link.getAttribute('href') === `#${hash}`) link.classList.add('is-active');
         else link.classList.remove('is-active');
     });
+
+    const meta = routeMeta[hash] || { title: 'platZH', icon: 'fa-layer-group' };
+    const pageTitleEl = document.getElementById('page-title');
+    const pageIconEl = document.getElementById('topbar-page-icon');
+    
+    if (pageTitleEl) pageTitleEl.textContent = meta.title;
+    if (pageIconEl) pageIconEl.innerHTML = `<i class="fa-solid ${meta.icon}"></i>`;
+
+    const dateWidget = document.getElementById('topbar-date-widget');
+    if (dateWidget) {
+        const today = new Date();
+        const options = { month: 'long', day: 'numeric', weekday: 'short' };
+        // Pl.: május 3., p.
+        dateWidget.textContent = today.toLocaleDateString('hu-HU', options);
+    }
 
     if (routes[hash]) {
         // Töltő animáció, amíg az oldal renderelődik
