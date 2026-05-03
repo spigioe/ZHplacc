@@ -56,12 +56,11 @@ export async function renderSubjects(container) {
                         <p class="is-size-7 has-text-grey mb-1"><strong>${credits} Kredit</strong></p>
                         ${zhCount > 0 ? `<p class="is-size-7 has-text-grey is-flex is-align-items-center">ZH-k: <span class="ml-2">${zhDots}</span></p>` : ''}
                     </div>
+                    
+                    <!-- FRISSÍTETT LÁBLÉC: Csak Részletek és Törlés -->
                     <div class="is-flex is-justify-content-flex-end mt-4 pt-3 subj-card-footer">
-                        <button class="button is-small is-ghost has-text-info p-0 sub-btn-view" data-id="${subId}">
+                        <button class="button is-small is-ghost has-text-info p-0 sub-btn-view mr-4" data-id="${subId}">
                             <span class="icon is-small"><i class="fa-solid fa-eye"></i></span><span>Részletek</span>
-                        </button>
-                        <button class="button is-small is-ghost has-text-link p-0 sub-btn-edit" data-id="${subId}">
-                            <span class="icon is-small"><i class="fa-solid fa-pen"></i></span><span>Szerk.</span>
                         </button>
                         <button class="button is-small is-ghost has-text-danger p-0 sub-btn-delete" data-id="${subId}">
                             <span class="icon is-small"><i class="fa-solid fa-trash-can"></i></span><span>Törlés</span>
@@ -152,7 +151,7 @@ export async function renderSubjects(container) {
     // Teendők Widget Inicializálása
     renderSidebarTodosWidget();
 
-    // 4. Eseménykezelők bekötése
+    // 4. GOMBOK ESEMÉNYKEZELŐINEK BEKÖTÉSE (Minden más előtt, hogy biztosan működjön!)
     document.getElementById('dash-btn-add-sub')?.addEventListener('click', (e) => { 
         e.preventDefault(); 
         openAddSubjectModal(); 
@@ -168,15 +167,25 @@ export async function renderSubjects(container) {
         renderSubjects(container);
     });
 
-    document.querySelectorAll('.sub-btn-view').forEach(btn => btn.addEventListener('click', (e) => {
-        e.preventDefault(); openViewSubjectModal(parseInt(e.currentTarget.dataset.id));
-    }));
+    // Részletek, Szerkesztés, Törlés gombok
+    document.querySelectorAll('.sub-btn-view').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault(); 
+            openViewSubjectModal(parseInt(e.currentTarget.dataset.id));
+        });
+    });
 
-    document.querySelectorAll('.sub-btn-edit').forEach(btn => btn.addEventListener('click', (e) => {
-        e.preventDefault(); openEditSubjectModal(parseInt(e.currentTarget.dataset.id));
-    }));
+    document.querySelectorAll('.sub-btn-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault(); 
+            deleteSubject(parseInt(e.currentTarget.dataset.id));
+        });
+    });
 
-    document.querySelectorAll('.sub-btn-delete').forEach(btn => btn.addEventListener('click', (e) => {
-        e.preventDefault(); deleteSubject(parseInt(e.currentTarget.dataset.id));
-    }));
+    // 5. Teendők Widget Inicializálása (Védett blokkban, hogy ne akassza meg az oldalt)
+    try {
+        renderSidebarTodosWidget();
+    } catch (err) {
+        console.error("Nem sikerült betölteni a Teendők widgetet a Tantárgyak oldalon:", err);
+    }
 }

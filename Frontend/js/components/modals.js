@@ -181,66 +181,10 @@ export function injectModals() {
 <!-- ========================================== -->
 <!-- 5. EGYÉB KISEBB MODÁLOK (View-k és Utility-k) -->
 <!-- ========================================== -->
-<div class="modal" id="view-zh-modal">
-    <div class="modal-background" id="view-zh-bg"></div>
-    <div class="modal-card">
-        <header class="modal-card-head">
-            <p class="modal-card-title has-text-weight-bold" id="view-zh-title">ZH Részletei</p>
-            <button class="delete" aria-label="close" id="view-zh-cancel-btn"></button>
-        </header>
-        <section class="modal-card-body">
-            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
-                <h1 id="view-zh-subject" class="title is-4 mb-4">ZH neve</h1>
-                <div class="is-flex is-align-items-center mb-3"><span class="icon mr-3"><i class="fa-regular fa-calendar"></i></span><span id="view-zh-dateof">Dátum</span></div>
-                <div class="is-flex is-align-items-center mb-3"><span class="icon mr-3"><i class="fa-solid fa-location-dot"></i></span><span id="view-zh-room">Terem</span></div>
-                <div class="is-flex is-align-items-center mb-3"><span class="icon mr-3"><i class="fa-solid fa-layer-group"></i></span><span id="view-zh-type">Típus</span></div>
-                <hr class="my-3">
-                <div class="columns is-mobile is-vcentered m-0">
-                    <div class="column is-half p-0"><p class="heading">Max Pont</p><p class="title is-3" id="view-zh-maxpoints">100</p></div>
-                    <div class="column is-half p-0"><p class="heading">Oktatási Hét</p><p class="title is-3" id="view-zh-week">1</p></div>
-                </div>
-            </div>
-            <div class="field mt-auto">
-                <label class="label is-small">Megjegyzés</label>
-                <div class="box is-shadowless p-4" style="background-color: var(--bulma-background); border: 1px solid var(--bulma-border); min-height: 80px;">
-                    <div id="view-zh-notes" style="white-space: pre-wrap;"></div>
-                </div>
-            </div>
-        </section>
-        <footer class="modal-card-foot is-flex is-justify-content-space-between">
-            <button id="view-zh-delete-btn" class="button is-danger is-light px-5">Törlés</button>
-            <button id="view-zh-edit-btn" class="button is-link px-5">Szerkesztés</button>
-        </footer>
-    </div>
-</div>
 
-<div class="modal" id="view-exam-modal">
-    <div class="modal-background" id="view-exam-bg"></div>
-    <div class="modal-card">
-        <header class="modal-card-head">
-            <p class="modal-card-title has-text-weight-bold">Vizsga Részletei</p>
-            <button class="delete" aria-label="close" id="view-exam-cancel-btn"></button>
-        </header>
-        <section class="modal-card-body">
-            <div class="box is-shadowless mb-5" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
-                <h1 id="view-exam-subject" class="title is-4 mb-4">Tantárgy</h1>
-                <div class="is-flex is-align-items-center mb-3"><span class="icon mr-3"><i class="fa-regular fa-calendar"></i></span><span id="view-exam-dateof">Dátum</span></div>
-                <div class="is-flex is-align-items-center mb-3"><span class="icon mr-3"><i class="fa-solid fa-location-dot"></i></span><span id="view-exam-room">Terem</span></div>
-                <div class="is-flex is-align-items-center"><span class="icon mr-3"><i class="fa-solid fa-layer-group"></i></span><span id="view-exam-type">Típus</span></div>
-            </div>
-            <div class="field mt-auto">
-                <label class="label is-small">Megjegyzés</label>
-                <div class="box is-shadowless p-4" style="background-color: var(--bulma-background); border: 1px solid var(--bulma-border); min-height: 80px;">
-                    <div id="view-exam-notes" style="white-space: pre-wrap;"></div>
-                </div>
-            </div>
-        </section>
-        <footer class="modal-card-foot is-flex is-justify-content-space-between">
-            <button id="view-exam-delete-btn" class="button is-danger is-light px-5">Törlés</button>
-            <button id="view-exam-edit-btn" class="button is-link px-5">Szerkesztés</button>
-        </footer>
-    </div>
-</div>
+
+
+
 
 <div class="modal" id="clear-db-modal">
     <div class="modal-background" id="clear-db-bg"></div>
@@ -373,33 +317,63 @@ export function injectModals() {
 <!-- ========================================== -->
 <div class="modal" id="view-class-modal">
     <div class="modal-background"></div>
-    <div class="modal-card">
-        <header class="modal-card-head">
-            <p class="modal-card-title has-text-weight-bold">Óra részletei</p>
-            <button class="delete" aria-label="close" id="view-class-close-btn"></button>
-        </header>
-        <section class="modal-card-body">
-            <div class="box is-shadowless mb-4" style="border: 1px solid var(--bulma-border); background: var(--bulma-background);">
-                <h1 id="detail-class-title" class="title is-4 mb-4">Esemény neve</h1>
-                <div class="is-flex is-align-items-center mb-3"><span class="icon mr-3"><i class="fa-regular fa-clock"></i></span><span id="detail-class-time" class="has-text-weight-medium">Időpont</span></div>
-                <div class="is-flex is-align-items-center mb-3"><span class="icon mr-3"><i class="fa-solid fa-location-dot"></i></span><span id="detail-class-room">Terem</span></div>
-                <div class="is-flex is-align-items-center"><span class="icon mr-3"><i class="fa-solid fa-layer-group"></i></span><span id="detail-class-type">Típus</span></div>
+    <div class="modal-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 450px; margin: 0;">
+        <div class="box p-5" style="border-radius: 12px; border: 1px solid var(--bulma-border); box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;">
+            
+            <!-- Bezárás X gomb a jobb felső sarokban -->
+            <button class="delete is-medium close-modal" aria-label="close" id="view-class-close-btn" style="position: absolute; top: 15px; right: 15px; z-index: 2;"></button>
+
+            <!-- Fejléc Ikonnal -->
+            <div class="is-flex is-align-items-center mb-5 pb-3" style="border-bottom: 1px solid var(--bulma-border);">
+                <span class="icon is-large has-text-primary-dark mr-3"><i class="fa-regular fa-clock fa-2x"></i></span>
+                <div>
+                    <p class="is-size-7 has-text-grey has-text-weight-bold is-uppercase mb-1">Óra részletei</p>
+                    <h3 class="title is-4 m-0 has-text-dark" id="detail-class-title" style="line-height: 1.2;">Esemény neve</h3>
+                </div>
+            </div>
+
+            <!-- Adatok -->
+            <div class="mb-4">
+                <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+                    <span class="has-text-grey has-text-weight-medium"><i class="fa-regular fa-calendar-check mr-2"></i> Időpont:</span>
+                    <span class="has-text-weight-bold" id="detail-class-time">Időpont</span>
+                </div>
+                
+                <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+                    <span class="has-text-grey has-text-weight-medium"><i class="fa-solid fa-location-dot mr-2"></i> Terem:</span>
+                    <span class="has-text-weight-bold" id="detail-class-room">Terem</span>
+                </div>
+                
+                <div class="is-flex is-justify-content-space-between is-align-items-center">
+                    <span class="has-text-grey has-text-weight-medium"><i class="fa-solid fa-layer-group mr-2"></i> Típus:</span>
+                    <span class="tag is-primary is-light has-text-weight-bold" id="detail-class-type" style="border-radius: 6px;">Típus</span>
+                </div>
+            </div>
+
+            <!-- Megjegyzések (Szerkeszthető Textarea) -->
+            <div class="field mb-5">
+                <label class="label is-small has-text-grey"><i class="fa-regular fa-comment-dots mr-1"></i> Megjegyzés ehhez az órához</label>
+                <div class="control">
+                    <textarea class="textarea is-small" id="detail-class-notes" rows="3" placeholder="Ide írhatsz jegyzetet, ami csak ehhez az órához tartozik..." style="border-radius: 8px; border-color: var(--bulma-border);"></textarea>
+                </div>
+            </div>
+
+            <!-- Gombok -->
+            <div class="is-flex is-justify-content-space-between is-align-items-center">
+                <button class="button is-danger is-light has-text-weight-bold" id="detail-class-delete-btn" style="border-radius: 8px;">
+                    <i class="fa-solid fa-trash-can mr-2"></i> Törlés
+                </button>
+                <div class="is-flex" style="gap: 8px;">
+                    <button class="button is-warning is-light has-text-weight-bold px-3" id="view-class-to-zh-btn" title="ZH kiírása ebből az órából" style="border-radius: 8px;">
+                        <span class="icon"><i class="fa-solid fa-file-pen"></i></span>
+                    </button>
+                    <button class="button is-link has-text-weight-bold px-5" id="view-class-save-btn" style="border-radius: 8px;">
+                        Mentés
+                    </button>
+                </div>
             </div>
             
-            <div class="field mt-4">
-                <label class="label is-small">Megjegyzés</label>
-                <div class="control"><textarea class="textarea" id="detail-class-notes" rows="3" placeholder="Ide írhatsz jegyzetet az órához..."></textarea></div>
-            </div>
-        </section>
-        <footer class="modal-card-foot is-flex is-justify-content-space-between">
-            <button class="button is-danger is-light px-4" id="detail-class-delete-btn">Törlés</button>
-            <div>
-                <button class="button is-warning is-light mr-2" id="view-class-to-zh-btn" title="ZH kiírása ebből az órából">
-                    <span class="icon"><i class="fa-solid fa-file-pen"></i></span>
-                </button>
-                <button class="button is-link px-5" id="view-class-save-btn">Mentés</button>
-            </div>
-        </footer>
+        </div>
     </div>
 </div>
     
@@ -442,5 +416,192 @@ export function injectModals() {
     </div>
 </div>
 
+
+<!-- ========================================== -->
+<!-- ÚJ, STÍLUSOS TANTÁRGY RÉSZLETEK MODAL -->
+<!-- ========================================== -->
+<div class="modal" id="view-subject-modal">
+    <div class="modal-background"></div>
+    <div class="modal-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 450px; margin: 0;">
+        <div class="box p-5" style="border-radius: 12px; border: 1px solid var(--bulma-border); box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;">
+            
+            <!-- Bezárás X gomb a jobb felső sarokban -->
+            <button class="delete is-medium close-modal" aria-label="close" style="position: absolute; top: 15px; right: 15px; z-index: 2;"></button>
+
+            <!-- Fejléc Ikonnal -->
+            <div class="is-flex is-align-items-center mb-5 pb-3" style="border-bottom: 1px solid var(--bulma-border);">
+                <span class="icon is-large has-text-info mr-3"><i class="fa-solid fa-book-open fa-2x"></i></span>
+                <h3 class="title is-4 m-0 has-text-info-dark" id="view-sub-name" style="line-height: 1.2;">Tárgynév</h3>
+            </div>
+
+            <!-- Adatok -->
+            <div class="mb-5">
+                <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+                    <span class="has-text-grey has-text-weight-medium"><i class="fa-solid fa-coins mr-2"></i> Kreditérték:</span>
+                    <span class="tag is-info is-light is-medium has-text-weight-bold" id="view-sub-credits" style="border-radius: 6px;">0</span>
+                </div>
+                
+                <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+                    <span class="has-text-grey has-text-weight-medium"><i class="fa-solid fa-pen-ruler mr-2"></i> Számonkérések:</span>
+                    <span class="tag is-warning is-light is-medium has-text-weight-bold" id="view-sub-zhcount" style="border-radius: 6px;">0 ZH</span>
+                </div>
+                
+                <div class="is-flex is-justify-content-space-between is-align-items-center">
+                    <span class="has-text-grey has-text-weight-medium"><i class="fa-solid fa-check-double mr-2"></i> Teljesítés:</span>
+                    <span class="tag is-primary is-light is-medium has-text-weight-bold" id="view-sub-completion" style="border-radius: 6px;">Évközi</span>
+                </div>
+            </div>
+            
+            <!-- Megjegyzések -->
+            <h4 class="title is-6 mb-2 has-text-grey-dark"><i class="fa-regular fa-comment-dots mr-2"></i> Megjegyzések</h4>
+            <div class="box p-4 has-background-light is-shadowless mb-5" style="border: 1px solid var(--bulma-border); border-radius: 8px;">
+                <p id="view-sub-notes" class="is-size-7 has-text-grey-dark" style="white-space: pre-wrap; margin: 0;"></p>
+            </div>
+            
+            <!-- Gombok -->
+            <div class="is-flex is-justify-content-flex-end is-align-items-center" style="gap: 10px;">
+                <button class="button is-ghost has-text-grey close-modal">Bezárás</button>
+                <button class="button is-link has-text-weight-bold" id="view-sub-edit-btn" style="border-radius: 8px;">
+                    <i class="fa-solid fa-pen mr-2"></i> Szerkesztés
+                </button>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- ZH RÉSZLETEK MODAL -->
+<!-- ========================================== -->
+<div class="modal" id="view-zh-modal">
+    <div class="modal-background" id="view-zh-bg"></div>
+    <div class="modal-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 450px; margin: 0;">
+        <div class="box p-5" style="border-radius: 12px; border: 1px solid var(--bulma-border); box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;">
+            
+            <!-- Fejléc / Cím -->
+            <button class="delete is-medium close-modal" aria-label="close" id="view-zh-cancel-btn" style="position: absolute; top: 15px; right: 15px; z-index: 2;"></button>
+            
+            <div class="is-flex is-align-items-center mb-5 pb-3" style="border-bottom: 1px solid var(--bulma-border);">
+                <span class="icon is-large has-text-warning-dark mr-3"><i class="fa-solid fa-file-signature fa-2x"></i></span>
+                <div>
+                    <p class="is-size-7 has-text-grey has-text-weight-bold is-uppercase mb-1" id="view-zh-title">ZH Részletei</p>
+                    <h3 class="title is-4 m-0 has-text-dark" id="view-zh-subject" style="line-height: 1.2;">ZH neve</h3>
+                </div>
+            </div>
+
+            <!-- Adatok -->
+            <div class="mb-5">
+                <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+                    <span class="has-text-grey has-text-weight-medium"><i class="fa-regular fa-calendar mr-2"></i> Dátum:</span>
+                    <span class="has-text-weight-bold" id="view-zh-dateof">Dátum</span>
+                </div>
+                
+                <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+                    <span class="has-text-grey has-text-weight-medium"><i class="fa-solid fa-location-dot mr-2"></i> Terem:</span>
+                    <span class="has-text-weight-bold" id="view-zh-room">Terem</span>
+                </div>
+                
+                <div class="is-flex is-justify-content-space-between is-align-items-center">
+                    <span class="has-text-grey has-text-weight-medium"><i class="fa-solid fa-layer-group mr-2"></i> Típus:</span>
+                    <span class="tag is-warning is-light has-text-weight-bold" id="view-zh-type" style="border-radius: 6px;">Típus</span>
+                </div>
+            </div>
+
+            <!-- Dobozok (Max pont, Hét) -->
+            <div class="columns is-mobile mb-4">
+                <div class="column is-half">
+                    <div class="box p-3 has-text-centered has-background-light is-shadowless" style="border: 1px solid var(--bulma-border); border-radius: 8px;">
+                        <p class="heading mb-1">Max Pont</p>
+                        <p class="title is-4 has-text-info" id="view-zh-maxpoints">100</p>
+                    </div>
+                </div>
+                <div class="column is-half">
+                    <div class="box p-3 has-text-centered has-background-light is-shadowless" style="border: 1px solid var(--bulma-border); border-radius: 8px;">
+                        <p class="heading mb-1">Oktatási Hét</p>
+                        <p class="title is-4 has-text-primary" id="view-zh-week">1</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Megjegyzések -->
+            <div class="field mb-5">
+                <label class="label is-small has-text-grey"><i class="fa-regular fa-comment-dots mr-1"></i> Megjegyzés</label>
+                <div class="box p-3 has-background-light is-shadowless" style="border: 1px solid var(--bulma-border); border-radius: 8px; min-height: 80px;">
+                    <p id="view-zh-notes" class="is-size-7 has-text-grey-dark m-0" style="white-space: pre-wrap;"></p>
+                </div>
+            </div>
+
+            <!-- Gombok -->
+            <div class="is-flex is-justify-content-space-between is-align-items-center">
+                <button class="button is-danger is-light has-text-weight-bold" id="view-zh-delete-btn" style="border-radius: 8px;">
+                    <i class="fa-solid fa-trash-can mr-2"></i> Törlés
+                </button>
+                <button class="button is-link has-text-weight-bold" id="view-zh-edit-btn" style="border-radius: 8px;">
+                    <i class="fa-solid fa-pen mr-2"></i> Szerkesztés
+                </button>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- VIZSGA RÉSZLETEK MODAL -->
+<!-- ========================================== -->
+<div class="modal" id="view-exam-modal">
+    <div class="modal-background" id="view-exam-bg"></div>
+    <div class="modal-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 450px; margin: 0;">
+        <div class="box p-5" style="border-radius: 12px; border: 1px solid var(--bulma-border); box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;">
+            
+            <!-- Fejléc / Cím -->
+            <button class="delete is-medium close-modal" aria-label="close" id="view-exam-cancel-btn" style="position: absolute; top: 15px; right: 15px; z-index: 2;"></button>
+            
+            <div class="is-flex is-align-items-center mb-5 pb-3" style="border-bottom: 1px solid var(--bulma-border);">
+                <span class="icon is-large has-text-danger mr-3"><i class="fa-solid fa-graduation-cap fa-2x"></i></span>
+                <div>
+                    <p class="is-size-7 has-text-grey has-text-weight-bold is-uppercase mb-1">Vizsga Részletei</p>
+                    <h3 class="title is-4 m-0 has-text-dark" id="view-exam-subject" style="line-height: 1.2;">Tantárgy</h3>
+                </div>
+            </div>
+
+            <!-- Adatok -->
+            <div class="mb-5">
+                <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+                    <span class="has-text-grey has-text-weight-medium"><i class="fa-regular fa-calendar mr-2"></i> Dátum:</span>
+                    <span class="has-text-weight-bold" id="view-exam-dateof">Dátum</span>
+                </div>
+                
+                <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+                    <span class="has-text-grey has-text-weight-medium"><i class="fa-solid fa-location-dot mr-2"></i> Terem:</span>
+                    <span class="has-text-weight-bold" id="view-exam-room">Terem</span>
+                </div>
+                
+                <div class="is-flex is-justify-content-space-between is-align-items-center">
+                    <span class="has-text-grey has-text-weight-medium"><i class="fa-solid fa-layer-group mr-2"></i> Típus:</span>
+                    <span class="tag is-danger is-light has-text-weight-bold" id="view-exam-type" style="border-radius: 6px;">Típus</span>
+                </div>
+            </div>
+
+            <!-- Megjegyzések -->
+            <div class="field mb-5">
+                <label class="label is-small has-text-grey"><i class="fa-regular fa-comment-dots mr-1"></i> Megjegyzés</label>
+                <div class="box p-3 has-background-light is-shadowless" style="border: 1px solid var(--bulma-border); border-radius: 8px; min-height: 80px;">
+                    <p id="view-exam-notes" class="is-size-7 has-text-grey-dark m-0" style="white-space: pre-wrap;"></p>
+                </div>
+            </div>
+
+            <!-- Gombok -->
+            <div class="is-flex is-justify-content-space-between is-align-items-center">
+                <button class="button is-danger is-light has-text-weight-bold" id="view-exam-delete-btn" style="border-radius: 8px;">
+                    <i class="fa-solid fa-trash-can mr-2"></i> Törlés
+                </button>
+                <button class="button is-link has-text-weight-bold" id="view-exam-edit-btn" style="border-radius: 8px;">
+                    <i class="fa-solid fa-pen mr-2"></i> Szerkesztés
+                </button>
+            </div>
+            
+        </div>
+    </div>
+</div>
 `;
 }

@@ -14,4 +14,10 @@ CREATE TABLE Todos (
     FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
 );
 
+SELECT * FROM `Settings`
+
+UPDATE `Settings`
+SET is_first_login = 1
+WHERE user_id = 10;
+
 SELECT * FROM `Users`

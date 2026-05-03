@@ -5,6 +5,7 @@
 // ==========================================
 
 import { state } from './state.js';
+import { apiFetch } from './api.js';
 
 // ---> 1. MODÁLOK KOMPONENSÉNEK IMPORTÁLÁSA <---
 import { injectModals } from '../components/modals.js';
@@ -148,19 +149,27 @@ function setupGlobalEventListeners() {
     document.getElementById("mobile-logout-btn")?.addEventListener("click", logout);
 
     // BEÁLLÍTÁSOK ALOLDALRA NAVIGÁLÁS
-    document.getElementById("nav-settings-btn")?.addEventListener("click", (e) => {
+    const handleSmartNav = (e, targetHash) => {
         e.preventDefault();
-        window.location.hash = '#settings';
-    });
-    document.getElementById("mobile-settings-btn")?.addEventListener("click", (e) => {
-        e.preventDefault();
-        window.location.hash = '#settings';
-    });
+        // Ha jelenleg is a céloldalon vagyunk, akkor visszadobjuk a főoldalra (Toggle effekt)
+        if (window.location.hash === targetHash) {
+            window.location.hash = '#dashboard';
+        } else {
+            // Egyébként normál navigáció a céloldalra
+            window.location.hash = targetHash;
+        }
+        
+        // Mobil menü bezárása, ha épp nyitva volt
+        document.getElementById('mobile-menu')?.classList.remove('is-active');
+        document.getElementById('mobile-menu-overlay')?.classList.remove('is-active');
+    };
 
-    document.getElementById("nav-help-btn")?.addEventListener("click", (e) => {
-        e.preventDefault();
-        window.location.hash = '#help';
-    });
+    // Asztali menü gombok
+    document.getElementById("nav-settings-btn")?.addEventListener("click", (e) => handleSmartNav(e, '#settings'));
+    document.getElementById("nav-help-btn")?.addEventListener("click", (e) => handleSmartNav(e, '#help'));
+    
+    // Mobil menü gombok
+    document.getElementById("mobile-settings-btn")?.addEventListener("click", (e) => handleSmartNav(e, '#settings'));
     
     document.getElementById("nav-sync-btn")?.addEventListener("click", startNeptunSync);
     document.getElementById("theme-toggle")?.addEventListener("click", toggleTheme);
@@ -202,6 +211,12 @@ function setupGlobalEventListeners() {
             });
         });
     }
+
+    document.querySelectorAll('.modal-background, .modal-close, .modal-card-head .delete, .close-modal').forEach(el => {
+        el.addEventListener('click', () => {
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('is-active'));
+        });
+    });
 
     // --- ÓRA RÉSZLETEK MODÁL ---
     document.getElementById("view-class-close-btn")?.addEventListener("click", closeViewClassModal);
@@ -267,16 +282,28 @@ async function initApp() {
         // A state.appSettings frissítése miatt viszont továbbra is kellhet:
         try {
             const setRes = await apiFetch(`/settings`);
-            if(setRes.ok) {
+            if (setRes.ok) {
                 const s = await setRes.json();
+                
+                // Megnézzük a kisbetűs és a nagybetűs verziót is!
+                let isFirstDbValue = true;
+                if (s.isFirstLogin !== undefined) {
+                    isFirstDbValue = s.isFirstLogin;
+                } else if (s.IsFirstLogin !== undefined) {
+                    isFirstDbValue = s.IsFirstLogin;
+                }
+
                 state.appSettings = {
-                    semesterLength: s.semesterLength || 14,
-                    icsUrl: s.icsUrl || "",
-                    weekOffset: s.weekOffset || 0,
-                    isFirstLogin: s.isFirstLogin !== undefined ? s.isFirstLogin : true
+                    semesterLength: s.semesterLength || s.SemesterLength || 14,
+                    icsUrl: s.icsUrl || s.IcsUrl || "",
+                    weekOffset: s.weekOffset || s.WeekOffset || 0,
+                    isFrylabsUnlocked: s.isFrylabsUnlocked || s.IsFrylabsUnlocked || false,
+                    isFirstLogin: isFirstDbValue 
                 };
             }
-        } catch(e) {}
+        } catch(e) {
+            console.error("Hiba a beállítások betöltésekor", e);
+        }
 
         // --- FELHASZNÁLÓI PROFIL BETÖLTÉSE ---
         const userProfile = await fetchUserProfile();
@@ -335,8 +362,8 @@ async function initApp() {
 
         setTimeout(() => {
             checkAndRunTour();
-        }, 800);
-        
+        }, 500);
+
     } catch (e) {
         console.error("Kritikus hiba az induláskor:", e);
     }

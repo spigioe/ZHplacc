@@ -259,24 +259,58 @@
        SMART MENÜ ÉS ALMENÜ (MOBIL) - RAGASZTOTT FIX
        ========================================= */
 
-    .tt-smart-menu {
-        width: 200px !important;
-        z-index: 100 !important;
-        /* Nem használjuk a flex reverset, mert nem működött megbízhatóan */
-        display: block !important;
-        height: 50px !important; /* Pontosan a főgomb magassága */
-        padding: 0 !important;
+    /* A gombok beállításai (Balra igazítva!) */
+    .tt-menu-item {
+        width: 100% !important;
+        height: 45px !important; /* Picit alacsonyabb is a szűkebb dizájnhoz */
+        font-size: 0.95rem !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        position: relative !important; 
+        top: auto !important;
+        left: auto !important;
+        border-bottom: 1px solid rgba(128,128,128,0.1) !important;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start !important; /* BALRA IGAZÍTÁS */
+        padding-left: 15px !important; /* Beljebb húzzuk a széltől */
+        font-weight: bold;
     }
 
+    .tt-menu-item i {
+        width: 20px !important;
+        text-align: left !important;
+        margin-right: 8px !important;
+    }
+
+    /* A gombok beállításai (MÁR NEM ABSZOLÚTAK!) */
     .tt-menu-item {
         width: 100% !important;
         height: 50px !important;
         font-size: 1rem !important;
-        border-radius: 8px !important;
+        border-radius: 0 !important;
         margin: 0 !important;
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
+        position: relative !important; /* Ez volt a hiba oka, visszaállítjuk relatívra! */
+        top: auto !important;
+        left: auto !important;
+        border-bottom: 1px solid rgba(128,128,128,0.1) !important;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+
+    .tt-menu-item:last-of-type {
+        border-bottom: none !important;
+        border-bottom-left-radius: 8px !important;
+        border-bottom-right-radius: 8px !important;
+    }
+    
+    .tt-menu-item:first-of-type {
+        border-top-left-radius: 8px !important;
+        border-top-right-radius: 8px !important;
     }
 
     /* Az almenü KÖZVETLENÜL a szülő (.tt-smart-menu) dobozhoz képest mozog */
@@ -284,23 +318,25 @@
         position: absolute !important;
         left: 0 !important;
         right: 0 !important;
-        /* 1. Mivel a gomb 50px magas, pontosan 50px-től kezdődjön a menü, így összetapadnak! */
-        top: 50px !important;
+        
+        top: 100% !important;
+        bottom: auto !important;
+        margin-top: 5px !important; 
+        
         width: 100% !important;
         height: auto !important;
         max-width: none !important;
         max-height: none !important;
-        margin: 0 !important; /* Semmi extra hézag */
         padding: 0 !important;
 
         opacity: 0;
         visibility: hidden;
         transition: opacity 0.15s ease !important;
-        /* Kinyírjuk az asztali "leesős/slide" animációkat */
         transform: translate3d(0, 0, 0) !important;
         animation: none !important;
     }
 
+    /* Amikor megnyitjuk az "Új esemény" gombot */
     /* Amikor megnyitjuk az "Új esemény" gombot */
     .tt-submenu-wrapper.is-open,
     .tt-submenu-wrapper.is-expanded {
@@ -312,9 +348,9 @@
     /* HA FELFELÉ KELL NYÍLNIA */
     .tt-submenu-wrapper.is-up {
         top: auto !important;
-        /* 2. Felfelé nyitásnál az alja (bottom) legyen pont 50px-re (a gomb tetejénél) */
-        bottom: 50px !important; 
-        margin: 0 !important;
+        bottom: 100% !important; 
+        margin-top: 0 !important;
+        margin-bottom: 5px !important; 
     }
 
     /* Asztali maradékok eltakarítása */
@@ -357,11 +393,14 @@
 
     .tt-sub-item {
         width: 100% !important;
-        height: 50px !important;
-        font-size: 1rem !important;
+        height: 45px !important; /* Szintén alacsonyabb */
+        font-size: 0.95rem !important;
         border-radius: 0 !important;
         border-bottom: 1px solid rgba(128,128,128,0.1) !important;
-        text-align: center;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important; /* BALRA IGAZÍTÁS */
+        padding-left: 15px !important; /* Ugyanaz a margó, mint a főgomboknál */
         background: transparent;
         font-weight: bold;
         margin: 0 !important;

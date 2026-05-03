@@ -3,12 +3,16 @@ import { state } from '../core/state.js';
 import { apiFetch } from '../core/api.js';
 
 export function checkAndRunTour() {
-    // A localStorage helyett az adatbázisból betöltött értéket nézzük
-    // Ha esetleg nincs ilyen adat, a biztonság kedvéért fusson le (fallback)
-    const isFirst = state.appSettings ? state.appSettings.isFirstLogin : true;
-    
-    if (isFirst) {
-        startTour();
+    // Ellenőrizzük az adatbázisból betöltött értéket
+    // Kifejezetten a "true"-t keressük, és ha egyáltalán nincs state.appSettings, 
+    // akkor is true-nak vesszük (fallback)
+    const isFirst = state.appSettings ? state.appSettings.isFirstLogin : false;
+
+    if (isFirst === true) {
+        // Ellenőrizzük, hogy nincs-e már megnyitva a modál
+        if (!document.getElementById("onboarding-tour-modal")) {
+            startTour();
+        }
     }
 }
 
@@ -43,12 +47,17 @@ function startTour() {
 
     let currentStep = 0;
 
+    // Létrehozzuk a Modál HTML-jét (Bekerült a Bezárás X gomb is)
     const modalHtml = `
         <div class="modal is-active" id="onboarding-tour-modal" style="z-index: 9999;">
             <div class="modal-background" style="background-color: rgba(0,0,0,0.8);"></div>
             <div class="modal-content" style="max-width: 450px; width: 90%;">
-                <div class="box p-5" style="border-radius: 12px; border: 2px solid var(--bulma-link);">
-                    <div class="has-text-centered mb-4">
+                <div class="box p-5" style="border-radius: 12px; border: 2px solid var(--bulma-link); position: relative;">
+                    
+                    <!-- ÚJ BEZÁRÁS (X) GOMB -->
+                    <button class="delete is-medium" id="tour-close-btn" aria-label="close" style="position: absolute; top: 15px; right: 15px;"></button>
+
+                    <div class="has-text-centered mb-4 mt-2">
                         <span class="icon is-large mb-2" id="tour-icon"><i class="fa-2x ${steps[0].icon}"></i></span>
                         <h3 class="title is-4 m-0" id="tour-title">${steps[0].title}</h3>
                     </div>
@@ -63,8 +72,9 @@ function startTour() {
                     </div>
 
                     <div class="is-flex is-justify-content-space-between is-align-items-center">
-                        <button class="button is-ghost has-text-grey" id="tour-skip-btn">Kihagyás</button>
-                        <button class="button is-link has-text-weight-bold" id="tour-next-btn" style="border-radius: 8px; px-5;">Tovább <i class="fa-solid fa-arrow-right ml-2"></i></button>
+                        <!-- ÁTNEVEZVE: Majd később -->
+                        <button class="button is-ghost has-text-grey" id="tour-skip-btn">Majd később</button>
+                        <button class="button is-link has-text-weight-bold" id="tour-next-btn" style="border-radius: 8px; padding-left: 1.5rem; padding-right: 1.5rem;">Tovább <i class="fa-solid fa-arrow-right ml-2"></i></button>
                     </div>
                 </div>
             </div>
@@ -76,6 +86,7 @@ function startTour() {
     const modal = document.getElementById("onboarding-tour-modal");
     const nextBtn = document.getElementById("tour-next-btn");
     const skipBtn = document.getElementById("tour-skip-btn");
+    const closeBtn = document.getElementById("tour-close-btn");
     const titleEl = document.getElementById("tour-title");
     const contentEl = document.getElementById("tour-content");
     const iconEl = document.getElementById("tour-icon");
@@ -98,36 +109,58 @@ function startTour() {
         }
     }
 
+    // EZ A FÜGGVÉNY ÁLLÍTJA ÁT HAMISRA AZ ADATBÁZISBAN!
     async function finishTour() {
-        // 1. Átállítjuk kliens oldalon, hogy ne fusson le többször
+        // 1. Átállítjuk kliens oldalon, hogy a jelenlegi session-ben már ne nyíljon meg újra
         if (state.appSettings) {
             state.appSettings.isFirstLogin = false;
         }
 
-        // 2. Szinkronizáljuk a Backenddel (Mentjük a beállításokat)
+        // 2. Beküldjük az adatbázisnak a TELJES beállítás objektumot, hogy az adatbázis frissüljön
         try {
-            await apiFetch('/settings', {
+            const res = await apiFetch('/settings', {
                 method: 'POST',
-                body: JSON.stringify(state.appSettings)
+                // Biztosítjuk, hogy minden mező megvan, a biztonság kedvéért explicit false-t írunk a payloadba:
+                body: JSON.stringify({
+                    semesterLength: state.appSettings?.semesterLength || 14,
+                    icsUrl: state.appSettings?.icsUrl || "",
+                    weekOffset: state.appSettings?.weekOffset || 0,
+                    isFrylabsUnlocked: state.appSettings?.isFrylabsUnlocked || false,
+                    isFirstLogin: false // <--- EZ A KULCS! Garantáljuk a false értéket!
+                })
             });
+            
+            if (!res.ok) {
+                console.error("Hiba a tour befejezése mentésekor! Státuszkód:", res.status);
+            }
         } catch (error) {
-            console.error("Nem sikerült elmenteni az isFirstLogin-t az adatbázisba", error);
+            console.error("Hálózati hiba a tour mentésekor:", error);
         }
 
+        // 3. Eltüntetjük a modált a képernyőről
         modal.remove(); 
-        window.location.hash = '#settings'; 
+        
+        // 4. Ha az "Irány a beállítások" (vagyis az utolsó) lépésnél nyomott a Tovább-ra, akkor átdobjuk
+        if (currentStep === steps.length - 1 && window.location.hash !== '#settings') {
+            window.location.hash = '#settings'; 
+        }
     }
 
+    // Eseménykezelők bekötése
     nextBtn.addEventListener("click", () => {
         if (currentStep < steps.length - 1) {
             currentStep++;
             updateStep();
         } else {
-            finishTour();
+            finishTour(); // Csak a végén menti el az adatbázisba
         }
     });
 
     skipBtn.addEventListener("click", () => {
-        finishTour();
+        finishTour(); // Ha a "Kihagyás"-ra nyom, menti az adatbázisba
+    });
+
+    closeBtn.addEventListener("click", () => {
+        finishTour(); // Ha az X-re nyom, szintén menti az adatbázisba, hogy bezárta
     });
 }

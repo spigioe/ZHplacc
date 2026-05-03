@@ -86,7 +86,7 @@ export async function renderTimetable(container) {
 
                         <!-- ÚJ SMART MENÜ -->
                         <div id="tt-smart-menu" class="tt-smart-menu">
-                            <button id="tt-btn-view" class="tt-menu-item" style="display: none;"><i class="fa-solid fa-eye" style="width: 16px; text-align: center;"></i> Megtekintés</button>
+                            <button id="tt-btn-view" class="tt-menu-item" style="display: none;"><i class="fa-solid fa-eye" style="width: 16px; text-align: center;"></i> Részletek</button>
                             <button id="tt-btn-del" class="tt-menu-item has-text-danger" style="display: none;"><i class="fa-solid fa-trash-can" style="width: 16px; text-align: center;"></i> Törlés</button>
                             <button id="tt-btn-add" class="tt-menu-item"><i class="fa-solid fa-plus" style="width: 16px; text-align: center;"></i> Új esemény</button>
 

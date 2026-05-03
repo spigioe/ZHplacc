@@ -2,4 +2,4 @@ Backend/bin/
 Backend/obj/
 Backend/appsettings.json
 Backend/appsettings.Development.json
-changes.txt
+changes.sql

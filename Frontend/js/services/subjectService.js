@@ -1,4 +1,4 @@
-// js/subjects.js
+// js/services/subjectService.js
 import { state } from "../core/state.js";
 import { escapeHTML, apiFetch } from "../core/api.js";
 import { getCurrentSemesterString, getSemesterFromDate } from "./syncService.js";
@@ -69,22 +69,39 @@ export function openEditSubjectModal(id) {
 
 export function openViewSubjectModal(id) {
     closeAddSubjectModal(); 
-    const s = state.allSubjects.find(x => (x.id || x.Id) === id);
-    if (!s) return;
     
-    document.getElementById("view-sub-name").textContent = s.name || s.Name || "Ismeretlen";
-    document.getElementById("view-sub-credits").textContent = s.credits || s.Credits || 0;
-    document.getElementById("view-sub-zhcount").textContent = s.zhCount || s.ZhCount || 0;
-    document.getElementById("view-sub-completion").textContent = (s.hasExam || s.HasExam) ? "Vizsgás" : "Évközi jegyes";
+    // Keresés megengedő egyenlőséggel (==), hogy string és int esetén is működjön
+    const s = state.allSubjects.find(x => (x.id || x.Id) == id);
+    if (!s) {
+        showToast("Hiba: A kiválasztott tantárgy nem található a memóriában!", "is-danger");
+        return;
+    }
     
-    const notes = s.notes || s.Notes || "";
-    document.getElementById("view-sub-notes").textContent = notes.length > 0 ? notes : "Nincs megjegyzés.";
-    document.getElementById("view-subject-modal").classList.add("is-active");
-    
-    document.getElementById("view-sub-edit-btn").onclick = (e) => {
-        e.preventDefault();
-        openEditSubjectModal(id);
-    };
+    try {
+        // Értékek betöltése
+        document.getElementById("view-sub-name").textContent = s.name || s.Name || "Ismeretlen";
+        document.getElementById("view-sub-credits").textContent = s.credits || s.Credits || 0;
+        document.getElementById("view-sub-zhcount").textContent = s.zhCount || s.ZhCount || 0;
+        document.getElementById("view-sub-completion").textContent = (s.hasExam || s.HasExam) ? "Vizsgás" : "Évközi jegyes";
+        
+        const notes = s.notes || s.Notes || "";
+        document.getElementById("view-sub-notes").textContent = notes.length > 0 ? notes : "Nincs megjegyzés.";
+        
+        // Modál megjelenítése
+        document.getElementById("view-subject-modal").classList.add("is-active");
+        
+        // Szerkesztés gomb bekötése
+        const editBtn = document.getElementById("view-sub-edit-btn");
+        if (editBtn) {
+            editBtn.onclick = (e) => {
+                e.preventDefault();
+                openEditSubjectModal(id);
+            };
+        }
+    } catch (error) {
+        console.error("Modál megnyitási hiba:", error);
+        showToast("Hiba történt a modál betöltésekor. Ellenőrizd a HTML-t!", "is-danger");
+    }
 }
 
 export function closeViewSubjectModal() { 

@@ -69,64 +69,48 @@
 /* ==========================================================================
    RESZPONZÍV DIZÁJN (MOBIL / TABLET)
    ========================================================================== */
+/* ==========================================================================
+   RESZPONZÍV DIZÁJN (MOBIL / TABLET) - STABIL GRID KÁRTYÁK
+   ========================================================================== */
 @media (max-width: 768px) {
     
     /* 1. Fő keret oszlopos elrendezése */
     .ass-layout-wrapper {
         flex-direction: column !important;
         height: auto !important;
-        overflow-y: visible !important; /* Engedjük a globális oldalgörgetést */
+        overflow-y: visible !important;
     }
 
-    /* 2. MOBIL CÍM (Legfelül) */
-    .ass-mobile-header {
-        order: 1 !important;
-    }
+    .ass-mobile-header { order: 1 !important; }
 
-    /* 3. JOBB OLDALSÁV (Gombok + Statisztika) -> Cím alá (Order 2) */
+    /* 2. JOBB OLDALSÁV (Gombok) */
     .ass-sidebar-column {
         order: 2 !important;
         width: 100% !important;
         height: auto !important;
-        border-left: none !important;
-        padding: 10px 15px 0 15px !important; /* Szűkebb felső padding */
+        padding: 10px 15px 0 15px !important;
     }
     
-    /* Gombok egymás mellé kényszerítése mobilon (Dashboard stílusban) */
     .ass-sidebar-column .ass-action-buttons {
         flex-direction: row !important;
-        flex-wrap: nowrap;
         gap: 10px;
-        margin-bottom: 10px !important;
+        margin-bottom: 15px !important;
     }
     
     .ass-sidebar-column .ass-action-buttons button {
         margin: 0 !important;
-        flex: 1; /* 50-50% helymegosztás */
+        flex: 1; 
         width: auto !important;
-        font-size: 0.8rem !important; /* Kisebb betű a gombban */
-        height: auto;
+        font-size: 0.8rem !important;
         padding: 10px 5px;
-        white-space: normal;
-        line-height: 1.2;
+        height: auto;
     }
 
-    /* Kisebb kijelzőkön (iPhone SE) szöveg csonkolás */
-    @media (max-width: 380px) {
-        .ass-sidebar-column .ass-action-buttons button i {
-            margin-right: 5px !important;
-        }
-        .ass-sidebar-column .ass-action-buttons button {
-            font-size: 0.75rem !important;
-        }
-    }
-    
-    /* A mobilon felesleges "Teendők" doboz elrejtése a helyspórolás végett */
     .ass-sidebar-column .ass-stat-box-dashed {
         display: none !important;
     }
 
-    /* 4. KÖZÉPSŐ OSZLOP (Táblázat) -> Alulra (Order 3) */
+    /* 3. KÖZÉPSŐ OSZLOP */
     .ass-main-column {
         order: 3 !important;
         width: 100% !important;
@@ -134,24 +118,116 @@
         overflow-y: visible !important;
     }
 
-    /* 5. Táblázat vízszintes görgetése (Swipe) */
-    .ass-table-container {
-        padding-bottom: 0 !important;
-    }
+    .ass-table-container { padding-bottom: 0 !important; }
     
+    /* =========================================================
+       4. TÁBLÁZAT ÁTALAKÍTÁSA KÁRTYÁKKÁ (CSS GRID TRÜKK)
+       ========================================================= */
     .ass-table-box {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch; /* Sima görgetés telefonon */
-        border-radius: 8px; /* Lekerekített doboz görgetéskor szebb */
+        background-color: transparent !important;
+        border: none !important;
+        padding: 0 !important;
     }
     
-    .ass-table {
-        min-width: 650px; /* Megakadályozza a cellák összeomlását, kikényszeríti a vízszintes görgetést */
+    .ass-table, .ass-table tbody {
+        display: block;
+        width: 100%;
+        background-color: transparent !important;
     }
-
-    /* Gombok (Részletek) kicsit kisebbek mobilon, hogy több hely maradjon a táblázatnak */
+    
+    .ass-table thead { display: none; } /* Fejléc elrejtése */
+    
+    /* A SOROKBÓL GRID KÁRTYÁT CSINÁLUNK */
+    .ass-table tr {
+        display: grid;
+        grid-template-columns: 1fr auto; /* Balra a szöveg, jobbra a tagek */
+        grid-template-rows: auto auto auto auto;
+        gap: 10px;
+        background-color: var(--bulma-scheme-main);
+        border: 1px solid var(--bulma-border);
+        border-radius: 12px;
+        margin-bottom: 15px;
+        padding: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .ass-table td {
+        display: flex;
+        align-items: center;
+        border: none !important;
+        padding: 0 !important;
+        text-align: left !important;
+    }
+    
+    .ass-table td:nth-child(3) {
+        grid-column: 1; 
+        grid-row: 1;
+        font-size: 1.25rem; /* Nagyobb betű, mert ez a főcím */
+        font-weight: bold;
+        line-height: 1.2;
+        color: var(--bulma-text-strong);
+    }
+    
+    .ass-table td:nth-child(2) {
+        grid-column: 2;
+        grid-row: 1;
+        justify-content: flex-end;
+        align-items: flex-start;
+    }
+    
+    /* 1. cella: Dátum és idő (ALÁ KERÜLT, teljes szélességben) */
+    .ass-table td:nth-child(1) {
+        grid-column: 1 / span 2;
+        grid-row: 2;
+        flex-direction: row; /* Egymás mellé tesszük a dátumot és az időt */
+        align-items: center;
+        font-size: 0.95rem;
+        color: var(--bulma-text-light);
+        border-top: 1px solid var(--bulma-border-light) !important; /* Szép elválasztó vonal a tárgy alatt */
+        padding-top: 10px !important;
+        margin-top: 5px !important;
+    }
+    /* Időpont kicsit halványabban a dátum mellett */
+    .ass-table td:nth-child(1) span { 
+        margin-top: 0;
+        margin-left: 8px;
+        font-weight: normal;
+    }
+    
+    /* 4. cella: Terem (Bal alsó) */
+    .ass-table td:nth-child(4) {
+        grid-column: 1;
+        grid-row: 3;
+        font-size: 0.95rem;
+        color: var(--bulma-text-light);
+    }
+    .ass-table td:nth-child(4)::before {
+        content: "Terem: ";
+        margin-right: 4px;
+        font-weight: normal;
+    }
+    
+    /* 5. cella: Visszaszámlálás tag (Jobb alsó) */
+    .ass-table td:nth-child(5) {
+        grid-column: 2;
+        grid-row: 3;
+        justify-content: flex-end;
+    }
+    
+    /* 6. cella: Gomb (Legalul, teljes szélesség) */
+    .ass-table td:nth-child(6) {
+        grid-column: 1 / span 2;
+        grid-row: 4;
+        margin-top: 5px;
+    }
+    
     .btn-view-assessment {
-        font-size: 0.8rem !important;
-        padding: 5px 10px !important;
+        width: 100%;
+        background-color: var(--bulma-scheme-main-bis) !important;
+        border-radius: 8px;
+        height: 40px;
+        font-size: 0.95rem !important;
+        font-weight: bold;
+        color: var(--bulma-link) !important;
     }
 }
