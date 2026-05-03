@@ -48,6 +48,7 @@
 
         <div class="mt-auto">
             <ul class="menu-list px-3">
+                <li><a href="#help" id="nav-help-btn" class="nav-item px-4 py-3 cursor-pointer"><i class="fa-solid fa-circle-question mr-3"></i> Súgó</a></li>
                 <li><a id="nav-sync-btn" class="nav-item px-4 py-3 cursor-pointer"><i class="fa-solid fa-rotate mr-3"></i> Szinkronizálás</a></li>
                 <li><a id="theme-toggle" class="nav-item px-4 py-3 cursor-pointer"><i class="fa-solid fa-moon mr-3"></i> Sötét mód</a></li>
                 <li><a id="nav-settings-btn" class="nav-item px-4 py-3 cursor-pointer"><i class="fa-solid fa-gear mr-3"></i> Beállítások</a></li>
@@ -71,21 +72,23 @@
     <!-- KÖZÉPSŐ FŐ RÉSZ -->
     <div class="main-wrapper">
         <header class="topbar">
-            <div>
-                <h2 class="title is-5 mb-0" id="page-title">platZH beta version 0.9.6</h2>
-            </div>
             <div class="is-flex is-align-items-center" style="gap: 15px;">
                 <!-- ÚJ: Mobilos kijelentkezés gomb (Csak mobilon látszik) -->
                 <button class="button is-white is-rounded is-hidden-tablet" id="mobile-logout-btn" title="Kijelentkezés">
-                    <i class="fa-solid fa-right-from-bracket has-text-danger"></i>
+                    <i class="fa-solid fa-right-from-bracket fa-flip-horizontal has-text-danger"></i>
                 </button>
                 
-                <!-- Mobilos beállítások gomb -->
+                <h2 class="title is-5 mb-0" id="page-title">Dashboard</h2>
+
+
+                <button class="button is-white is-rounded is-hidden-tablet" id="mobile-help-btn" title="Súgó">
+                    <i class="fa-solid fa-circle-question has-text-info"></i>
+                </button>
+                
                 <button class="button is-white is-rounded is-hidden-tablet" id="mobile-settings-btn">
                     <i class="fa-solid fa-gear"></i>
                 </button>
-                
-                <button class="button is-white is-rounded"><i class="fa-regular fa-bell"></i></button>
+
             </div>
         </header>
 

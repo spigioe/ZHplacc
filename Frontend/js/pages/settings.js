@@ -2,7 +2,8 @@
 import { state } from '../core/state.js';
 import { apiFetch, fetchUserProfile } from '../core/api.js';
 import { showToast } from '../core/ui.js';
-import { startNeptunSync } from '../services/syncService.js';
+// Fontos: a toggleTheme importálása a syncService-ből!
+import { startNeptunSync, toggleTheme } from '../services/syncService.js';
 import { openClearDbModal } from '../services/settingService.js';
 
 export async function renderSettings(container) {
@@ -86,6 +87,24 @@ export async function renderSettings(container) {
                         <button class="button is-info is-light is-fullwidth has-text-weight-bold" id="page-sync-now-btn">
                             <i class="fa-solid fa-rotate mr-2"></i> Szinkronizálás most
                         </button>
+                    </div>
+
+                    <!-- Megjelenés (Csak Mobilon Jelenik meg Külön) -->
+                    <!-- Mobilon a Sötét Mód gomb el van rejtve az oldalsávban, így itt elérhető -->
+                    <div class="box mb-5 p-5 is-hidden-tablet" style="border: 1px solid var(--bulma-border); box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                        <div class="is-flex is-align-items-center mb-4 pb-2" style="border-bottom: 1px solid var(--bulma-border);">
+                            <span class="icon has-text-primary mr-2"><i class="fa-solid fa-moon"></i></span>
+                            <h3 class="title is-5 m-0 has-text-grey-dark">Megjelenés</h3>
+                        </div>
+                        
+                        <div class="is-flex is-align-items-center is-justify-content-space-between">
+                            <div>
+                                <p class="has-text-weight-bold">Téma kiválasztása</p>
+                            </div>
+                            <button class="button is-primary is-light has-text-weight-bold" id="page-theme-toggle-btn">
+                                <!-- A gomb szövegét a JS fogja beállítani -->
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Rendszer Mentés Gomb -->
@@ -245,6 +264,19 @@ export async function renderSettings(container) {
     document.getElementById("page-setting-pic-upload").addEventListener("change", handleProfilePicUpload);
     document.getElementById("page-save-profile-btn").addEventListener("click", saveUserProfile);
     document.getElementById("page-save-password-btn").addEventListener("click", changePassword);
+
+    // Téma gomb logikája
+    const pageThemeBtn = document.getElementById("page-theme-toggle-btn");
+    if (pageThemeBtn) {
+        const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
+        pageThemeBtn.innerHTML = currentTheme === "light" ? "🌙 Sötét mód" : "☀️ Világos mód";
+
+        pageThemeBtn.addEventListener("click", () => {
+            toggleTheme(); // Meghívja az importált függvényt a syncService.js-ből
+            const newTheme = document.documentElement.getAttribute("data-theme");
+            pageThemeBtn.innerHTML = newTheme === "light" ? "🌙 Sötét mód" : "☀️ Világos mód";
+        });
+    }
 }
 
 // ==========================================
@@ -272,7 +304,6 @@ async function saveSystemSettings() {
     btn.classList.add("is-loading");
     
     try {
-        // Védelem a NaN értékek ellen (amelyek 400-as hibát dobnának)
         let semLen = parseInt(document.getElementById("page-setting-semester-length").value, 10);
         let wOff = parseInt(document.getElementById("page-setting-week-offset").value, 10);
         
@@ -289,7 +320,6 @@ async function saveSystemSettings() {
             showToast("Rendszer beállítások mentve!", "is-success");
             await refreshSettingsInPage();
         } else {
-            // Hibaszöveg kiolvasása a 400-as kód esetén
             const errText = await res.text();
             showToast(`Hiba a mentéskor: ${errText}`, "is-danger");
         }
@@ -383,7 +413,6 @@ async function changePassword() {
     const newPw = document.getElementById("page-setting-new-password").value;
     const newPwConfirm = document.getElementById("page-setting-new-password-confirm").value;
 
-    // Dupla jelszó és kötelező mezők ellenőrzése
     if (!oldPw || !newPw || !newPwConfirm) { 
         showToast("Minden jelszó mezőt tölts ki!", "is-warning"); 
         return; 
@@ -409,7 +438,6 @@ async function changePassword() {
             document.getElementById("page-setting-new-password").value = "";
             document.getElementById("page-setting-new-password-confirm").value = "";
         } else {
-            // Itt kiírjuk a 400-as hiba pontos okát (amit a szerver küld vissza)
             const errText = await res.text();
             showToast(errText || "Hibás régi jelszó vagy érvénytelen kérés!", "is-danger");
         }

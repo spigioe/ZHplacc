@@ -15,6 +15,8 @@ import { renderSubjects } from '../pages/subjects.js';
 import { renderAssessments } from '../pages/assessments.js';
 import { renderTodos } from '../pages/todos.js';
 import { renderSettings } from '../pages/settings.js';
+import { renderHelp } from '../pages/help.js'; // <- ÚJ: Súgó importálása
+import { checkAndRunTour } from '../services/tourService.js';
 
 import { 
     logout, 
@@ -78,7 +80,8 @@ const routes = {
     'subjects': renderSubjects,
     'assessments': renderAssessments,
     'todos': renderTodos,
-    'settings': renderSettings
+    'settings': renderSettings,
+    'help' : renderHelp
 };
 
 const routerView = document.getElementById('router-view');
@@ -126,6 +129,11 @@ function setupGlobalEventListeners() {
     document.getElementById("mobile-settings-btn")?.addEventListener("click", (e) => {
         e.preventDefault();
         window.location.hash = '#settings';
+    });
+
+    document.getElementById("nav-help-btn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        window.location.hash = '#help';
     });
     
     document.getElementById("nav-sync-btn")?.addEventListener("click", startNeptunSync);
@@ -297,6 +305,10 @@ async function initApp() {
 
         window.addEventListener('hashchange', navigate);
         navigate();
+
+        setTimeout(() => {
+            checkAndRunTour();
+        }, 800);
         
     } catch (e) {
         console.error("Kritikus hiba az induláskor:", e);
