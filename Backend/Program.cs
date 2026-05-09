@@ -312,11 +312,13 @@ app.MapPost("/api/exams/sync", async (ClaimsPrincipal user, List<ExamSyncDto> in
     {
         foreach (var ex in incomingExams)
         {
-            var subjSql = "SELECT id FROM Subjects WHERE user_id = @UserId AND name = @Name LIMIT 1";
-            var subjectId = await connection.QuerySingleOrDefaultAsync<int?>(subjSql, new { UserId = userId, Name = ex.Subject }, transaction);
+            // JAVÍTÁS: A keresésnél a félévet (semester_tag) is kötelezően vizsgáljuk!
+            var subjSql = "SELECT id FROM Subjects WHERE user_id = @UserId AND name = @Name AND semester_tag = @SemesterTag LIMIT 1";
+            var subjectId = await connection.QuerySingleOrDefaultAsync<int?>(subjSql, new { UserId = userId, Name = ex.Subject, SemesterTag = ex.SemesterTag }, transaction);
 
             if (subjectId == null)
             {
+                // Ha nincs ilyen tárgy EBBEN a félévben, létrehozunk egy újat
                 var insertSubjSql = @"INSERT INTO Subjects (user_id, name, semester_tag, credits, has_exam, zh_count) VALUES (@UserId, @Name, @SemesterTag, 0, 1, 0); SELECT LAST_INSERT_ID();";
                 subjectId = await connection.QuerySingleAsync<int>(insertSubjSql, new { UserId = userId, Name = ex.Subject, SemesterTag = ex.SemesterTag }, transaction);
             }
@@ -336,10 +338,10 @@ app.MapPost("/api/exams/sync", async (ClaimsPrincipal user, List<ExamSyncDto> in
     catch (Exception ex)
     {
         await transaction.RollbackAsync();
+        Console.WriteLine(ex.Message);
         return Results.Problem("Belső hiba történt a szinkronizálás során.");
     }
 }).RequireAuthorization();
-
 
 // --- ÓRAREND ÉS SZINKRONIZÁCIÓ ---
 app.MapPost("/api/orarend/sync", async (ClaimsPrincipal user, List<TimetableItem> importedEvents) =>

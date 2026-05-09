@@ -189,8 +189,8 @@ export async function submitCustomClass() {
     const isCustomTab = document.querySelector('#add-class-type-toggle li[data-type="custom"]').classList.contains('is-active');
     
     const subject = isCustomTab 
-        ? document.getElementById("add-class-subject").value 
-        : document.getElementById("add-class-subject-dropdown").value;
+        ? document.getElementById("add-class-subject").innerText
+        : document.getElementById("add-class-subject-dropdown").innerText
 
     const day = parseInt(document.getElementById("add-class-day").value);
     const start = document.getElementById("add-class-start").value;
