@@ -320,10 +320,8 @@ export function injectModals() {
     <div class="modal-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 450px; margin: 0;">
         <div class="box p-5" style="border-radius: 12px; border: 1px solid var(--bulma-border); box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;">
             
-            <!-- Bezárás X gomb a jobb felső sarokban -->
             <button class="delete is-medium close-modal" aria-label="close" id="view-class-close-btn" style="position: absolute; top: 15px; right: 15px; z-index: 2;"></button>
 
-            <!-- Fejléc Ikonnal -->
             <div class="is-flex is-align-items-center mb-5 pb-3" style="border-bottom: 1px solid var(--bulma-border);">
                 <span class="icon is-large has-text-primary-dark mr-3"><i class="fa-regular fa-clock fa-2x"></i></span>
                 <div>
@@ -332,25 +330,42 @@ export function injectModals() {
                 </div>
             </div>
 
-            <!-- Adatok -->
             <div class="mb-4">
                 <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
                     <span class="has-text-grey has-text-weight-medium"><i class="fa-regular fa-calendar-check mr-2"></i> Időpont:</span>
                     <span class="has-text-weight-bold" id="detail-class-time">Időpont</span>
                 </div>
-                
                 <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
                     <span class="has-text-grey has-text-weight-medium"><i class="fa-solid fa-location-dot mr-2"></i> Terem:</span>
                     <span class="has-text-weight-bold" id="detail-class-room">Terem</span>
                 </div>
-                
                 <div class="is-flex is-justify-content-space-between is-align-items-center">
                     <span class="has-text-grey has-text-weight-medium"><i class="fa-solid fa-layer-group mr-2"></i> Típus:</span>
                     <span class="tag is-primary is-light has-text-weight-bold" id="detail-class-type" style="border-radius: 6px;">Típus</span>
                 </div>
             </div>
 
-            <!-- Megjegyzések (Szerkeszthető Textarea) -->
+            <div class="columns is-mobile mb-2">
+                <div class="column is-6 field">
+                    <label class="label is-small has-text-grey">Kártya színe</label>
+                    <div class="control">
+                        <input class="input p-1" type="color" id="detail-class-color" value="#3b82f6" style="height: 36px; cursor: pointer; border-radius: 8px;">
+                    </div>
+                </div>
+                <div class="column is-6 field">
+                    <label class="label is-small has-text-grey">Fontosság</label>
+                    <div class="control">
+                        <div class="select is-fullwidth is-small">
+                            <select id="detail-class-importance" style="border-radius: 8px;">
+                                <option value="0">Normál</option>
+                                <option value="1">Fontos</option>
+                                <option value="2">Kritikus</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="field mb-5">
                 <label class="label is-small has-text-grey"><i class="fa-regular fa-comment-dots mr-1"></i> Megjegyzés ehhez az órához</label>
                 <div class="control">
@@ -358,7 +373,6 @@ export function injectModals() {
                 </div>
             </div>
 
-            <!-- Gombok -->
             <div class="is-flex is-justify-content-space-between is-align-items-center">
                 <button class="button is-danger is-light has-text-weight-bold" id="detail-class-delete-btn" style="border-radius: 8px;">
                     <i class="fa-solid fa-trash-can mr-2"></i> Törlés
@@ -376,7 +390,7 @@ export function injectModals() {
         </div>
     </div>
 </div>
-    
+
 <!-- ========================================== -->
 <!-- SZINKRONIZÁLÁSI FOLYAMAT MODAL -->
 <!-- ========================================== -->

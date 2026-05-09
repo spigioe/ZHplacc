@@ -7,7 +7,6 @@ import { openAddZhModal} from "./zarthelyiService.js";
 
 // --- ÓRA (ESEMÉNY) MEGTEKINTÉSE ---
 export function openViewClassModal(id) {
-    // Stringgé alakítjuk mindkét oldalt a biztos egyezés érdekében!
     const cls = state.allTimetableEvents.find(c => String(c.id || c.Id) === String(id));
     
     if (!cls) {
@@ -15,14 +14,22 @@ export function openViewClassModal(id) {
         return;
     }
 
-    // Eltároljuk a state-ben, hogy mentésnél/törlésnél tudjuk mit piszkálunk
     state.currentlySelectedClass = cls;
 
     // 1. Cím és alap adatok betöltése
     document.getElementById('detail-class-title').textContent = cls.subject || cls.Subject || "Ismeretlen óra";
     document.getElementById('detail-class-room').textContent = cls.room || cls.Room || "Nincs megadva terem";
     document.getElementById('detail-class-type').textContent = cls.type || cls.Type || "Tanóra";
-    document.getElementById('detail-class-notes').value = cls.notes || cls.Notes || "";
+    
+    // JAVÍTVA: A szöveg és az új szín/fontosság mezők feltöltése (helyes ID-kkal)
+    const notesEl = document.getElementById('detail-class-notes');
+    if (notesEl) notesEl.value = cls.notes || cls.Notes || "";
+
+    const colorEl = document.getElementById('detail-class-color');
+    if (colorEl) colorEl.value = cls.color || cls.Color || "#3b82f6";
+
+    const impEl = document.getElementById('detail-class-importance');
+    if (impEl) impEl.value = cls.importance !== undefined ? cls.importance : (cls.Importance || 0);
 
     // 2. Dátum és Időpont formázása
     const days = ['Vasárnap', 'Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'Péntek', 'Szombat'];
@@ -32,10 +39,9 @@ export function openViewClassModal(id) {
     let startStr = "??:??";
     let endStr = "??:??";
     
-    // Ha már Date objektummá van alakítva
     if (cls.startObj instanceof Date && !isNaN(cls.startObj)) {
         startStr = `${String(cls.startObj.getHours()).padStart(2, '0')}:${String(cls.startObj.getMinutes()).padStart(2, '0')}`;
-    } else if (cls.start) { // Vagy ha nyers string
+    } else if (cls.start) {
         const d = new Date(cls.start);
         if(!isNaN(d)) startStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     }
@@ -50,7 +56,6 @@ export function openViewClassModal(id) {
     document.getElementById('detail-class-time').textContent = `${dayName} ${startStr} - ${endStr}`;
 
     // 3. Törlés gomb elrejtése/mutatása
-    // A Neptunból importált órákat nem lehet egyesével törölni, csak a sajátokat!
     const delBtn = document.getElementById('detail-class-delete-btn');
     if (cls.isCustom || cls.IsCustom) {
         delBtn.style.display = 'block';
@@ -64,7 +69,7 @@ export function openViewClassModal(id) {
 
 export function closeViewClassModal() {
     document.getElementById('view-class-modal').classList.remove('is-active');
-    state.currentlySelectedClass = null; // Takarítunk magunk után
+    state.currentlySelectedClass = null;
 }
 
 export async function saveClassDetails() {
@@ -82,10 +87,11 @@ export async function saveClassDetails() {
         scope = "single";
     }
 
+    // JAVÍTVA: Helyes azonosítók (NINCS "-input" a végükön, mert a HTML-ben sem úgy hívják őket!)
     const payload = {
-        Notes: document.getElementById("detail-class-notes-input").value,
-        Color: document.getElementById("detail-class-color-input").value,
-        Importance: parseInt(document.getElementById("detail-class-importance-input").value)
+        Notes: document.getElementById("detail-class-notes")?.value || "",
+        Color: document.getElementById("detail-class-color")?.value || "#3b82f6",
+        Importance: parseInt(document.getElementById("detail-class-importance")?.value || "0")
     };
 
     try {
@@ -184,48 +190,81 @@ export function closeAddClassModal() {
 }
 
 // JAVÍTVA: Mentés logikája az új fülek és mezők (Szín, Fontosság) alapján
+// JAVÍTVA: Helyes érték kiolvasás a legördülő menüből és az inputból
+// JAVÍTVA: Bolondbiztos adatkiolvasás mindkét fülről (ID helyett névvel, összeomlás nélkül)
 export async function submitCustomClass() {
-    // Annak a kiderítése, hogy melyik fül (Tárgy vs Egyéni) van kiválasztva
-    const isCustomTab = document.querySelector('#add-class-type-toggle li[data-type="custom"]').classList.contains('is-active');
+    // 1. Biztonságosan megnézzük, melyik fül aktív
+    const customTab = document.querySelector('#add-class-type-toggle li[data-type="custom"]');
+    const isCustomTab = customTab ? customTab.classList.contains('is-active') : false;
     
-    const subject = isCustomTab 
-        ? document.getElementById("add-class-subject").innerText
-        : document.getElementById("add-class-subject-dropdown").innerText
+    let subjectName = "";
 
-    const day = parseInt(document.getElementById("add-class-day").value);
-    const start = document.getElementById("add-class-start").value;
-    const end = document.getElementById("add-class-end").value;
+    // 2. Név kiolvasása a megfelelő mezőből
+    if (isCustomTab) {
+        // --- EGYÉNI ESEMÉNY FÜL ---
+        const customInput = document.getElementById("add-class-custom-name");
+        if (customInput) {
+            subjectName = customInput.value.trim();
+        }
+    } else {
+        // --- TANTÁRGYI ÓRA FÜL ---
+        const dropdown = document.getElementById("add-class-subject-dropdown");
+        if (dropdown && dropdown.selectedIndex >= 0) {
+            // A KRITIKUS RÉSZ: .text adja a nevet, .value adná a szám-ID-t!
+            subjectName = dropdown.options[dropdown.selectedIndex].text.trim();
+        }
+    }
+
+    // 3. Többi mező biztonságos kiolvasása
+    const day = parseInt(document.getElementById("add-class-day")?.value || "1");
+    const start = document.getElementById("add-class-start")?.value;
+    const end = document.getElementById("add-class-end")?.value;
+    
     const freqInput = document.getElementById("add-class-frequency");
-    const freq = freqInput ? parseInt(freqInput.value) : 1; 
+    const freq = freqInput ? parseInt(freqInput.value) : 0; 
 
-    if (!subject || !start || !end) {
-        showToast("Minden mezőt tölts ki (Tárgy/Név, Kezdés, Vége)!", "is-warning");
+    // 4. Validáció: Ne engedjük elküldeni, ha hibásak az adatok
+    if (!subjectName || subjectName === "-- Válassz tantárgyat --" || subjectName === "Nincs tárgy az aktuális félévben" || !start || !end) {
+        showToast("Minden kötelező mezőt tölts ki (Tárgy/Név, Kezdés, Vége)!", "is-warning");
         return;
     }
 
+    // Típus
+    const classTypeSelect = document.getElementById("add-class-type");
+    const classType = classTypeSelect ? classTypeSelect.value : "Egyéb";
+
+    // Szín és Fontosság
+    const colorInput = document.getElementById("add-class-color");
+    const colorValue = colorInput ? colorInput.value : "#3b82f6";
+    
+    const importanceInput = document.getElementById("add-class-importance");
+    const importanceValue = importanceInput ? parseInt(importanceInput.value) : 0;
+
+    // 5. Payload összeállítása
     const data = {
-        SubjectName: subject,
+        SubjectName: subjectName, // Itt már garantáltan a NÉV lesz (pl. "Matematika 1")
+        ClassType: isCustomTab ? "Egyéni Esemény" : classType, 
         DayOfWeek: day,
         StartTime: start.length === 5 ? start + ":00" : start, 
         EndTime: end.length === 5 ? end + ":00" : end,
-        Room: document.getElementById("add-class-room").value,
+        Room: document.getElementById("add-class-room")?.value || "",
         IsCustom: true,
         Notes: document.getElementById("add-class-notes")?.value || "",
-        ScheduledWeek: state.currentTimetableWeek, 
+        ScheduledWeek: state.currentTimetableWeek || 1, 
         Frequency: freq,
-        Color: document.getElementById("add-class-color")?.value || "#3b82f6",
-        Importance: parseInt(document.getElementById("add-class-importance")?.value || "0")
+        Color: colorValue, // A FRONTEND ITT ELKÜLDI A SZÍNT!
+        Importance: importanceValue
     };
 
     try {
         const res = await apiFetch(`/orarend/custom`, { method: 'POST', body: JSON.stringify(data) });
         if (res.ok) {
-            showToast("Esemény rögzítve!", "is-success");
+            showToast("Esemény sikeresen rögzítve!", "is-success");
             closeAddClassModal();
             await fetchOrarend();
-            if (window.refreshSPA) window.refreshSPA();
+            if (window.refreshSPA) window.refreshSPA(); // Vizuális frissítés
         } else {
-            showToast("Hiba a mentés során.", "is-danger");
+            showToast("Hiba történt a mentés során.", "is-danger");
         }
     } catch (e) { 
         console.error(e); 

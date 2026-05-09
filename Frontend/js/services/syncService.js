@@ -182,31 +182,67 @@ export function parseIcsToObjects(icsData) {
 
 export async function processAndUploadIcs(importedEvents) {
     if (importedEvents.length === 0) return;
-    const egyediTargyak = new Set(); const dbEvents = [];
-    
+
+    // Tárgyanként gyűjtjük az adatokat, beleértve a hozzájuk tartozó féléveket
+    const tárgyAdatok = {}; // { "Tárgynév": Set(["2025 Ősz", "2026 Tavasz"]) }
+    const dbEvents = [];
+
     importedEvents.forEach(e => {
-        let name = e.subject || "Ismeretlen";
-        egyediTargyak.add(name.trim());
+        const name = (e.subject || "Ismeretlen").trim();
+        // Meghatározzuk a félévet az esemény saját kezdési időpontjából!
+        const eventSemester = getSemesterFromDate(new Date(e.startTime));
+
+        if (!tárgyAdatok[name]) {
+            tárgyAdatok[name] = new Set();
+        }
+        tárgyAdatok[name].add(eventSemester);
+
         dbEvents.push({ 
-            SubjectName: name.trim(), 
+            SubjectName: name, 
             ClassType: e.classType, 
             StartTime: e.startTime, 
             EndTime: e.endTime, 
             Teacher: e.teachers || "Ismeretlen", 
             Room: e.room || "Ismeretlen terem", 
-            IsCustom: false 
+            IsCustom: false,
+            SemesterTag: eventSemester // Az órarendi bejegyzéshez is elmentjük a pontos félévet
         });
     });
     
     try {
+        // 1. Órarendi események mentése
         await apiFetch(`/orarend/sync`, { method: 'POST', body: JSON.stringify(dbEvents) });
-        const existingNames = state.allSubjects.map(s => s.name || s.Name);
-        for (let t of egyediTargyak) {
-            if (!existingNames.includes(t)) {
-                await apiFetch(`/subjects`, { method: 'POST', body: JSON.stringify({ name: t, credits: 0, hasExam: false }) });
+        
+        // 2. Tárgyak létrehozása/ellenőrzése félév alapján
+        // Lekérjük az összes eddigi tárgyat a memóriából az ütközések elkerüléséhez
+        const currentSubjects = state.allSubjects || [];
+
+        for (const [tárgynév, félévek] of Object.entries(tárgyAdatok)) {
+            for (const félév of félévek) {
+                // Ellenőrizzük, hogy létezik-e már ez a tárgy EBBEN a konkrét félévben
+                const létezik = currentSubjects.some(s => 
+                    (s.name || s.Name).trim() === tárgynév && 
+                    (s.semesterTag || s.SemesterTag) === félév
+                );
+
+                if (!létezik) {
+                    // Ha nem létezik az adott félévben, létrehozzuk
+                    await apiFetch(`/subjects`, { 
+                        method: 'POST', 
+                        body: JSON.stringify({ 
+                            name: tárgynév, 
+                            credits: 0, 
+                            hasExam: false,
+                            SemesterTag: félév 
+                        }) 
+                    });
+                    console.log(`Új tárgy rögzítve: ${tárgynév} (${félév})`);
+                }
             }
         }
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error("Hiba a szinkronizált adatok mentésekor:", e); 
+    }
 }
 
 
@@ -272,9 +308,21 @@ export function getCurrentSemesterString() {
 }
 
 export function getSemesterFromDate(dateObj) {
-    if (!dateObj) return getCurrentSemesterString();
-    const month = dateObj.getMonth() + 1; const year = dateObj.getFullYear();
-    return (month >= 2 && month <= 7) ? `${year} Tavasz` : (month >= 8 ? `${year} Ősz` : `${year - 1} Ősz`);
+    if (!dateObj || isNaN(dateObj.getTime())) dateObj = new Date();
+    
+    const month = dateObj.getMonth() + 1; // 1-12
+    const year = dateObj.getFullYear();
+    
+    // Február (2) és Augusztus (8) közötti események -> Tavaszi félév
+    // Kivétel: a januári események (1) még az előző év Őszi félévéhez tartoznak
+    if (month >= 2 && month <= 7) {
+        return `${year} Tavasz`;
+    } else if (month >= 8 && month <= 12) {
+        return `${year} Ősz`;
+    } else {
+        // Január (1. hónap) -> Az előző naptári év őszi féléve
+        return `${year - 1} Ősz`;
+    }
 }
 
 export function getAutoSemesterStart() {

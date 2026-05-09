@@ -383,16 +383,31 @@ app.MapPost("/api/orarend/custom", async (ClaimsPrincipal user, CustomClassDto d
     int targetDay = dto.DayOfWeek == 0 ? 7 : dto.DayOfWeek; 
     DateTime classDate = weekMonday.AddDays(targetDay - 1);
     
-    var sql = @"INSERT INTO Timetable (user_id, subject_name, class_type, start_time, end_time, room, teacher, is_custom, notes, frequency, scheduled_week) VALUES (@UserId, @SubjectName, @ClassType, @StartTime, @EndTime, @Room, 'Saját Óra', TRUE, @Notes, @Frequency, @ScheduledWeek)";
+    // ---> 1. JAVÍTÁS: A color és importance oszlopok és változók bekerültek az SQL parancsba! <---
+    var sql = @"INSERT INTO Timetable (user_id, subject_name, class_type, start_time, end_time, room, teacher, is_custom, notes, frequency, scheduled_week, color, importance) 
+                VALUES (@UserId, @SubjectName, @ClassType, @StartTime, @EndTime, @Room, 'Saját Óra', TRUE, @Notes, @Frequency, @ScheduledWeek, @Color, @Importance)";
     
     if (TimeSpan.TryParse(dto.StartTime, out var st) && TimeSpan.TryParse(dto.EndTime, out var et))
     {
-        await connection.ExecuteAsync(sql, new { UserId = userId, SubjectName = dto.SubjectName, ClassType = dto.ClassType, StartTime = classDate.Add(st), EndTime = classDate.Add(et), Room = dto.Room ?? "", Notes = dto.Notes, Frequency = dto.Frequency, ScheduledWeek = dto.ScheduledWeek });
+        // ---> 2. JAVÍTÁS: Átadjuk a Dappernek a színt és a fontosságot a DTO-ból! <---
+        await connection.ExecuteAsync(sql, new { 
+            UserId = userId, 
+            SubjectName = dto.SubjectName, 
+            ClassType = dto.ClassType, 
+            StartTime = classDate.Add(st), 
+            EndTime = classDate.Add(et), 
+            Room = dto.Room ?? "", 
+            Notes = dto.Notes, 
+            Frequency = dto.Frequency, 
+            ScheduledWeek = dto.ScheduledWeek,
+            Color = string.IsNullOrEmpty(dto.Color) ? "#3b82f6" : dto.Color, // Ha üres, kap egy szép alap kéket
+            Importance = dto.Importance
+        });
+        
         return Results.Ok("Saját óra sikeresen rögzítve!");
     }
     return Results.BadRequest("Hibás időformátum!");
 }).RequireAuthorization();
-
 app.MapPut("/api/orarend/{id:int}", async (ClaimsPrincipal user, int id, string? scope, TimetableItem fOra) =>
 {
     int userId = GetUserId(user);
@@ -615,6 +630,8 @@ public class CustomClassDto
     public bool IsCustom { get; set; }
     public string? Notes { get; set; }
     public int ScheduledWeek { get; set; }
+    public string? Color { get; set; }
+    public int Importance { get; set; }
 }
 public class Exam
 {
